@@ -51,6 +51,26 @@ def iniciar_pyos():
         print("Conta criada com sucesso! A entrar no sistema...")
     # ---------------------------------------------------------------
 
+    # --- NOVO: CARREGAR CONFIGURAÇÕES DE COR DO USUÁRIO ---
+    arquivo_config = "config_db.json"
+    if os.path.exists(arquivo_config):
+        with open(arquivo_config, 'r', encoding='utf-8') as f:
+            banco_cores = json.load(f)
+    else:
+        banco_cores = {}
+
+    # Dicionário de cores para o carregamento inicial
+    cores_iniciais = {
+        "vermelho": "\033[31m", "verde": "\033[32m", "amarelo": "\033[33m",
+        "azul": "\033[34m", "roxo": "\033[35m", "ciano": "\033[36m",
+        "branco": "\033[37m", "restaurar": "\033[0m"
+    }
+    
+    # Pega a cor salva do usuário (ou usa 'restaurar' se for a primeira vez)
+    cor_salva = banco_cores.get(usuario, "restaurar")
+    print(cores_iniciais[cor_salva], end="")
+    # ------------------------------------------------------
+
     limpar_tela()
     print("=================================================")
     print(f" Bem-vindo ao PyOS, {usuario}! ")
@@ -151,7 +171,7 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao acessar a pasta: {e}")
             else:
-                print("Por favor, digite o nome da pasta. Exemplo: cd Documentos (ou 'cd ..' para voltar)")
+                print("Por favor, digite o nome da pasta. Exemplo: 'cd Documentos (ou 'cd ..' para voltar)'")
                 
         elif comando == "disc":
             try:
@@ -181,7 +201,7 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao criar a pasta: {e}")
             else:
-                print("Por favor, digite o nome da pasta. Exemplo: mkdir arquivos_importantes")
+                print("Por favor, digite o nome da pasta. Exemplo: 'mkdir arquivos_importantes'")
                 
         elif comando == "rmdir":
             if argumento:
@@ -203,7 +223,7 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao deletar a pasta: {e}")
             else:
-                print("Por favor, digite o nome da pasta. Exemplo: rmdir pasta_antiga")
+                print("Por favor, digite o nome da pasta. Exemplo: 'rmdir pasta_antiga'")
                 
         elif comando == "open":
             if argumento:
@@ -223,7 +243,7 @@ def iniciar_pyos():
                 else:
                     print(f"Erro: O arquivo '{argumento}' não foi encontrado na pasta atual.")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: abrir documento.pdf")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'open documento.pdf'")
 
         elif comando == "empty":
             if argumento:
@@ -248,7 +268,7 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao tentar esvaziar a pasta: {e}")
             else:
-                print("Por favor, digite o nome da pasta. Exemplo: esvaziar arquivos_velhos")
+                print("Por favor, digite o nome da pasta. Exemplo: 'empty arquivos_velhos'")
                 
         elif comando == "read":
             if argumento:
@@ -268,7 +288,7 @@ def iniciar_pyos():
                 else:
                     print(f"Erro: '{argumento}' não foi encontrado ou não é um arquivo válido.")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: ler notas.txt")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'read notas.txt'")
                 
         elif comando == "write":
             if argumento:
@@ -300,7 +320,7 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao salvar o arquivo: {e}")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: escrever notas.txt")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'write notas.txt'")
 
         elif comando == "edit":
             if argumento:
@@ -345,12 +365,11 @@ def iniciar_pyos():
                     except Exception as e:
                         print(f"Erro ao editar o arquivo: {e}")
                 else:
-                    print(f"Erro: '{argumento}' não foi encontrado. Se quiser criar um novo, use o comando 'escrever'.")
+                    print(f"Erro: '{argumento}' não foi encontrado. Se quiser criar um novo, use o comando 'write'.")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: editar notas.txt")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'edit notas.txt'")
                 
-        elif comando == "color":
-            # Dicionário com os códigos mágicos ANSI de cada cor
+        elif comando == "cor":
             cores = {
                 "vermelho": "\033[31m",
                 "verde": "\033[32m",
@@ -363,26 +382,39 @@ def iniciar_pyos():
             }
             
             if argumento:
-                # Transforma o argumento em minúsculo para evitar erros (ex: VERDE vira verde)
                 cor_escolhida = argumento.lower()
                 
                 if cor_escolhida in cores:
-                    # Imprime o código invisível. O terminal muda de cor instantaneamente!
+                    # Aplica a cor na tela
                     print(cores[cor_escolhida], end="")
                     
-                    # Uma mensagem bonitinha já na cor nova
                     if cor_escolhida == "restaurar":
                         print("Cor restaurada para o padrão do sistema.")
                     else:
-                        print(f"Cor alterada para {cor_escolhida}! Bem-vindo ao modo hacker.")
+                        print(f"Cor alterada para {cor_escolhida}! Configuração salva.")
+                        
+                    # --- NOVO: Salvar no banco de dados de configurações ---
+                    arquivo_config = "config_db.json"
+                    if os.path.exists(arquivo_config):
+                        with open(arquivo_config, 'r', encoding='utf-8') as f:
+                            banco_cores = json.load(f)
+                    else:
+                        banco_cores = {}
+                        
+                    # Salva a cor escolhida associada ao nome do usuário logado
+                    banco_cores[usuario] = cor_escolhida
+                    
+                    with open(arquivo_config, 'w', encoding='utf-8') as f:
+                        json.dump(banco_cores, f, indent=4)
+                    # -------------------------------------------------------
                 else:
                     print("Cor inválida. As opções são:")
                     print(" -> vermelho, verde, amarelo, azul, roxo, ciano, branco, restaurar")
             else:
-                print("Por favor, digite uma cor. Exemplo: cor verde")
+                print("Por favor, digite uma cor. Exemplo: 'color verde'")
 
         else:
-            print(f"Comando '{comando}' não reconhecido. Digite 'ajuda' para ver a lista.")
+            print(f"Comando '{comando}' não reconhecido. Digite 'help' para ver a lista.")
 
 if __name__ == "__main__":
     iniciar_pyos()
