@@ -48,4 +48,5 @@ Improved visualization of files and folders.
 
 # PyOS 0.8 (AI Update)
   - Added 'import google.generativeai'
-  
+  Now you can communicate with the Gemini AI directly from the terminal.
+  You will only need to include the requested API key in the code.
