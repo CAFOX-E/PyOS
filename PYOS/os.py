@@ -480,7 +480,7 @@ def iniciar_pyos():
                 print(f"Erro ao analisar o disco: {e}")
                 
 # Comando read
-        elif comando == "read":
+        elif comando == "txt_read":
             if argumento:
                 # Verifica se o que o usuário digitou é realmente um arquivo
                 if os.path.isfile(argumento):
@@ -501,7 +501,7 @@ def iniciar_pyos():
                 print("Por favor, digite o nome do arquivo. Exemplo: 'read notas.txt'")
                 
 # Comando write
-        elif comando == "write":
+        elif comando == "txt_write":
             if argumento:
                 print(f"\n--- Escrevendo em: {argumento} ---")
                 print("DICA: Digite ':q' para salvar/sair, ou ':u' para apagar a linha anterior.")
@@ -534,7 +534,7 @@ def iniciar_pyos():
                 print("Por favor, digite o nome do arquivo. Exemplo: 'write notas.txt'")
 
 # Comando edit
-        elif comando == "edit":
+        elif comando == "txt_edit":
             if argumento:
                 # Verifica se o arquivo existe antes de tentar editar
                 if os.path.isfile(argumento):
@@ -581,7 +581,8 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome do arquivo. Exemplo: 'edit notas.txt'")
 
-        elif comando == "planilha_criar":
+# Comando csv_write
+        elif comando == "csv_write":
             if argumento:
                 # Garante que o arquivo tenha a extensão correta
                 if not argumento.endswith('.csv'):
@@ -607,7 +608,8 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome da planilha. Exemplo: planilha_criar clientes.csv")
 
-        elif comando == "planilha_add":
+# Comando csv_add
+        elif comando == "csv_add":
             if argumento:
                 if not argumento.endswith('.csv'):
                     argumento += '.csv'
@@ -642,7 +644,8 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome da planilha. Exemplo: planilha_add clientes.csv")
 
-        elif comando == "planilha_ler":
+# Comando csv_read
+        elif comando == "csv_read":
             if argumento:
                 if not argumento.endswith('.csv'):
                     argumento += '.csv'
