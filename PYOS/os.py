@@ -107,6 +107,7 @@ def iniciar_pyos():
             print("  mkdir   : Cria uma nova pasta (ex: mkdir nova_pasta)")
             print("  rmdir   : Deleta uma pasta (ex: rmdir pasta_antiga)")
             print("  open    : Executa um arquivo com o programa padrão do seu computador (ex: open foto.jpg)")
+            print("  delete  : Deleta um arquivo específico (ex: delete texto.txt)")
             print("  empty   : Apaga TODOS os arquivos de uma pasta de uma vez (ex: empty minha_pasta)")
             print("  disc    : Analisa o espaço de armazenamento do disco atual")
             print("  read    : Exibe o texto de um arquivo no terminal (ex: read notas.txt)")
@@ -277,6 +278,29 @@ def iniciar_pyos():
                     print(f"Erro: O arquivo '{argumento}' não foi encontrado na pasta atual.")
             else:
                 print("Por favor, digite o nome do arquivo. Exemplo: 'open documento.pdf'")
+
+        elif comando == "delete":
+            if argumento:
+                # 1. Verifica se o que o usuário digitou realmente é um arquivo
+                if os.path.isfile(argumento):
+                    try:
+                        # os.remove é a função do Python para deletar arquivos
+                        os.remove(argumento)
+                        print(f"Arquivo '{argumento}' deletado com sucesso!")
+                    except PermissionError:
+                        print(f"Erro: Acesso negado. O arquivo '{argumento}' pode estar aberto em outro programa ou ser protegido.")
+                    except Exception as e:
+                        print(f"Erro ao deletar o arquivo: {e}")
+                        
+                # 2. Se for uma pasta, avisa o usuário para usar o comando certo
+                elif os.path.isdir(argumento):
+                    print(f"Erro: '{argumento}' é uma pasta. Para deletar pastas, use o comando 'rmdir'.")
+                    
+                # 3. Se não for nenhum dos dois, o arquivo não existe ali
+                else:
+                    print(f"Erro: O arquivo '{argumento}' não foi encontrado na pasta atual.")
+            else:
+                print("Por favor, digite o nome do arquivo que deseja deletar. Exemplo: delete notas.txt")
 
         elif comando == "empty":
             if argumento:
