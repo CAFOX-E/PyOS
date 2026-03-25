@@ -121,7 +121,7 @@ def iniciar_pyos():
             print("  open    : Executa um arquivo com o programa padrão do seu computador (ex: open foto.jpg)")
             print("  delete  : Deleta um arquivo específico (ex: delete texto.txt)")
             print("  empty   : Apaga TODOS os arquivos de uma pasta de uma vez (ex: empty minha_pasta)")
-            print("  disc    : Analisa o espaço de armazenamento do disco atual")
+            print("  disk    : Analisa o espaço de armazenamento do disco atual")
             print("  read    : Exibe o texto de um arquivo no terminal (ex: read notas.txt)")
             print("  write   : Cria/edita um arquivo de texto (ex: write notas.txt)")
             print("  edit    : Edita um arquivo de texto já existente (ex: edit notas.txt)")
@@ -269,8 +269,6 @@ def iniciar_pyos():
         elif comando == "mkdir":
             if argumento:
                 try:
-                    local_especifico = r"C:\ "
-                    caminho_completo = os.path.join(local_especifico, argumento)
                     os.mkdir(argumento)
                     print(f"Pasta '{argumento}' criada com sucesso!")
                 except FileExistsError:
@@ -374,8 +372,8 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome da pasta. Exemplo: 'empty arquivos_velhos'")
                 
-# Comando disc
-        elif comando == "disc":
+# Comando disk
+        elif comando == "disk":
             try:
                 # Analisa o disco com base no diretório em que estamos
                 caminho_atual = os.getcwd()
