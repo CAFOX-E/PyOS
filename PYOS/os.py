@@ -5,6 +5,8 @@ import shutil
 import stat
 import subprocess
 import json
+import time
+import google.generativeai as genai
 
 def limpar_tela():
     # Limpa a tela dependendo do sistema operacional real do usuário
@@ -111,6 +113,7 @@ def iniciar_pyos():
             print("  list    : Lista os arquivos na pasta atual")
             print("  print   : Repete o que você digitar (ex: print olá mundo)")
             print("  calc    : Uma calculadora simples (ex: calc 5 + 5)")
+            print("  ai      : Inicia uma conversa com a Inteligência Artificial (ex: ia)")
 
         elif comando == "help-archives":
             print("\n--- Comandos Disponíveis ---")
@@ -215,6 +218,55 @@ def iniciar_pyos():
                     print("Erro na expressão matemática. Tente algo como: calc 10 * 2")
             else:
                 print("Por favor, digite uma conta. Exemplo: calc 5 + 5")
+
+        elif comando == "ai":
+            print("\n" + "="*50)
+            print(" Iniciando conexão com a IA (Google Gemini)...")
+            print(" Digite 'sair' a qualquer momento para voltar ao PyOS.")
+            print("="*50 + "\n")
+            
+            # Coloque a sua chave de API real aqui dentro das aspas!
+            CHAVE_API = "AIzaSyAPF6tyKxUZ5GXN_QuDjn938aePdpQ0y8g"
+            
+            if CHAVE_API == "AIzaSyAPF6tyKxUZ5GXN_QuDjn938aePdpQ0y8g":
+                print("Erro: Você esqueceu de colocar a sua Chave de API no código!")
+                print("Acesse https://aistudio.google.com/app/apikey para pegar a sua.")
+                continue
+
+            try:
+                # Configura a chave e escolhe o modelo mais rápido atual
+                genai.configure(api_key=CHAVE_API)
+                modelo = genai.GenerativeModel('gemini-1.5-flash')
+                
+                # Inicia um chat que tem "memória" da conversa
+                chat = modelo.start_chat(history=[])
+                
+                # Loop infinito exclusivo para o chat com a IA
+                while True:
+                    # Usamos uma cor diferente (Ciano) para o seu prompt na IA
+                    print("\033[36m", end="") 
+                    pergunta = input(f"{usuario} (IA)> ").strip()
+                    print("\033[0m", end="") # Restaura a cor
+                    
+                    if pergunta.lower() in ['sair', ':q']:
+                        print("Encerrando módulo de IA... Voltando ao sistema principal.")
+                        break
+                        
+                    if not pergunta:
+                        continue
+                        
+                    print("Pensando...\n")
+                    
+                    # Envia a pergunta para a API e recebe a resposta
+                    resposta = chat.send_message(pergunta)
+                    
+                    # Imprime a resposta da IA em amarelo para destacar
+                    print("\033[33m" + "Gemini: " + "\033[0m" + resposta.text + "\n")
+                    print("-" * 50)
+                    
+            except Exception as e:
+                print(f"Erro ao tentar se comunicar com a IA: {e}")
+                print("Verifique sua conexão de internet e se a Chave de API está correta.")
 
 # Comando cd
         elif comando == "cd":
