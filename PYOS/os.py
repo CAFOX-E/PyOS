@@ -101,7 +101,7 @@ def iniciar_pyos():
             print("  help config    : Exibe os comandos de configurações de usuários e outros")
             print("  quit           : Desliga o sistema")
 
-        elif comando == "help basics":
+        elif comando == "help-basics":
             print("\n--- Comandos Disponíveis ---")
             print("  help    : Mostra esta lista de comandos de ajuda")
             print("  date    : Exibe a data e hora atuais")
@@ -111,7 +111,7 @@ def iniciar_pyos():
             print("  print   : Repete o que você digitar (ex: print olá mundo)")
             print("  calc    : Uma calculadora simples (ex: calc 5 + 5)")
 
-        elif comando == "help archives":
+        elif comando == "help-archives":
             print("\n--- Comandos Disponíveis ---")
             print("  cd      : Navega entre as pastas (ex: cd nome_da_pasta ou cd .. para voltar)")
             print("  search  : Busca arquivos e pastas pelo nome (ex: search projeto)")
@@ -125,7 +125,7 @@ def iniciar_pyos():
             print("  write   : Cria/edita um arquivo de texto (ex: write notas.txt)")
             print("  edit    : Edita um arquivo de texto já existente (ex: edit notas.txt)")
             
-        elif comando == "help config":
+        elif comando == "help-config":
             print("\n--- Comandos Disponíveis ---")
             print("  adduser : Adiciona um novo usuário ao sistema (ex: adduser maria)")
             print("  dltuser : Deleta um usuário do sistema (ex: deluser joao)")
