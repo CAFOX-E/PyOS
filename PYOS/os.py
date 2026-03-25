@@ -7,6 +7,8 @@ import subprocess
 import json
 import time
 import csv
+import math
+import re
 import google.generativeai as genai
 
 def limpar_tela():
@@ -215,16 +217,53 @@ def iniciar_pyos():
             print(argumento)
 # Comando calc
         elif comando == "calc":
-            if argumento:
+            # Criamos um "dicionário seguro" com as funções matemáticas permitidas.
+            # Isso deixa o eval() muito mais seguro e poderoso!
+            funcoes_matematicas = {
+                "sqrt": math.sqrt, "sin": math.sin, "cos": math.cos, 
+                "tan": math.tan, "log": math.log, "log10": math.log10,
+                "pi": math.pi, "e": math.e, "abs": abs
+            }
+            
+            def resolver_conta(expressao):
                 try:
-                    # Avalia a expressão matemática simples. 
-                    # Nota: eval() é perigoso em ambientes reais, mas ok para este simulador básico.
-                    resultado = eval(argumento)
-                    print(f"Resultado: {resultado}")
+                    # 1. Transforma a palavra "de" em multiplicação (Ex: 50% de 100 vira 50% * 100)
+                    expressao_ajustada = expressao.replace(' de ', ' * ')
+                    
+                    # 2. Transforma o número com % em divisão (Ex: 50% vira (50/100))
+                    # O 're.sub' procura números seguidos de % e faz a troca matematicamente correta
+                    expressao_ajustada = re.sub(r'([0-9.]+)%', r'(\1/100)', expressao_ajustada)
+                    
+                    resultado = eval(expressao_ajustada, {"__builtins__": None}, funcoes_matematicas)
+                    return resultado
+                except ZeroDivisionError:
+                    return "Erro: Divisão por zero não é permitida."
                 except Exception:
-                    print("Erro na expressão matemática. Tente algo como: calc 10 * 2")
+                    return "Erro de sintaxe. Verifique a expressão digitada."
+
+            # Se o usuário digitou a conta direto na linha (ex: calc 10 * 2)
+            if argumento:
+                print(f"Resultado: {resolver_conta(argumento)}")
+                
+            # Se o usuário digitou apenas 'calc', abrimos o Modo Interativo
             else:
-                print("Por favor, digite uma conta. Exemplo: calc 5 + 5")
+                print("\n--- Calculadora Científica PyOS ---")
+                print("Operadores básicos: + (soma), - (subtração), * (multiplicação), / (divisão), ** (potência)")
+                print("Funções avançadas: sqrt(x), sin(x), cos(x), log(x), pi, e")
+                print("DICA: Digite ':q' ou 'sair' para voltar ao sistema.")
+                print("-" * 35)
+                
+                while True:
+                    conta = input("calc> ").strip().lower()
+                    
+                    if conta in [':q', 'sair']:
+                        print("Fechando calculadora...")
+                        break
+                    if not conta:
+                        continue
+                        
+                    resultado = resolver_conta(conta)
+                    print(f" = {resultado}")
 
 # Comando ai
         elif comando == "ai":
