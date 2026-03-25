@@ -98,6 +98,7 @@ def iniciar_pyos():
             print("\n--- Comandos Disponíveis ---")
             print("  help    : Mostra esta lista de comandos")
             print("  date    : Exibe a data e hora atuais")
+            print("  ping    : Testa a conexão de rede com um site ou IP (ex: ping google.com)")
             print("  clear   : Limpa a tela do terminal")
             print("  list    : Lista os arquivos na pasta atual")
             print("  print   : Repete o que você digitar (ex: print olá mundo)")
@@ -119,6 +120,28 @@ def iniciar_pyos():
         elif comando == "date":
             agora = datetime.datetime.now()
             print(f"Data e hora do sistema: {agora.strftime('%d/%m/%Y %H:%M:%S')}")
+
+        elif comando == "ping":
+            if argumento:
+                print(f"\nDisparando pulsos de rede para '{argumento}'...")
+                print("Aguarde a resposta do servidor...\n")
+                
+                try:
+                    # O Windows usa '-n' para definir o número de pacotes. Mac/Linux usam '-c'.
+                    # Vamos configurar para enviar 4 pacotes (para não ficar rodando para sempre no Linux/Mac)
+                    parametro = '-n' if sys.platform == 'win32' else '-c'
+                    
+                    # Monta o comando exato que o sistema real precisa
+                    comando_ping = ['ping', parametro, '4', argumento]
+                    
+                    # Executa o comando e mostra o resultado direto na tela do PyOS
+                    subprocess.call(comando_ping)
+                    
+                    print("\nTeste de conexão finalizado.")
+                except Exception as e:
+                    print(f"Erro ao tentar acessar a rede: {e}")
+            else:
+                print("Por favor, digite o endereço de um site ou IP. Exemplo: ping google.com")
             
         elif comando == "clear":
             limpar_tela()
