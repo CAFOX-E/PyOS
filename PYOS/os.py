@@ -100,18 +100,19 @@ def iniciar_pyos():
             print("  date    : Exibe a data e hora atuais")
             print("  clear   : Limpa a tela do terminal")
             print("  list    : Lista os arquivos na pasta atual")
-            print("  print   : Repete o que você digitar (ex: eco olá mundo)")
+            print("  print   : Repete o que você digitar (ex: print olá mundo)")
             print("  calc    : Uma calculadora simples (ex: calc 5 + 5)")
             print("  cd      : Navega entre as pastas (ex: cd nome_da_pasta ou cd .. para voltar)")
+            print("  search  : Busca arquivos e pastas pelo nome (ex: search projeto)")
             print("  mkdir   : Cria uma nova pasta (ex: mkdir nova_pasta)")
             print("  rmdir   : Deleta uma pasta (ex: rmdir pasta_antiga)")
-            print("  open    : Executa um arquivo com o programa padrão do seu computador (ex: abrir foto.jpg)")
+            print("  open    : Executa um arquivo com o programa padrão do seu computador (ex: open foto.jpg)")
             print("  empty   : Apaga TODOS os arquivos de uma pasta de uma vez (ex: empty minha_pasta)")
             print("  disc    : Analisa o espaço de armazenamento do disco atual")
-            print("  read    : Exibe o texto de um arquivo no terminal (ex: ler notas.txt)")
-            print("  write   : Cria/edita um arquivo de texto (ex: escrever notas.txt)")
-            print("  edit    : Edita um arquivo de texto já existente (ex: editar notas.txt)")
-            print("  color   : Muda a cor do terminal (ex: cor verde, cor restaurar)")
+            print("  read    : Exibe o texto de um arquivo no terminal (ex: read notas.txt)")
+            print("  write   : Cria/edita um arquivo de texto (ex: write notas.txt)")
+            print("  edit    : Edita um arquivo de texto já existente (ex: edit notas.txt)")
+            print("  color   : Muda a cor do terminal (ex: color verde, color restaurar)")
             print("  quit    : Desliga o sistema")
             
         elif comando == "date":
@@ -188,6 +189,38 @@ def iniciar_pyos():
                 print(f" -> Espaço Livre : {livre // gb} GB")
             except Exception as e:
                 print(f"Erro ao analisar o disco: {e}")
+
+        elif comando == "search":
+            if argumento:
+                print(f"\nVasculhando pastas por '{argumento}' a partir de: {os.getcwd()}")
+                print("Isso pode levar alguns segundos dependendo da quantidade de arquivos...\n")
+                
+                encontrados = 0
+                
+                # os.walk percorre a pasta atual ('.') e absolutamente todas as subpastas dentro dela
+                for raiz, pastas, arquivos in os.walk('.'):
+                    
+                    # 1. Procura se alguma pasta tem o nome que digitamos
+                    for nome_pasta in pastas:
+                        # Convertendo para minúsculo para a busca não diferenciar maiúsculas/minúsculas
+                        if argumento.lower() in nome_pasta.lower():
+                            caminho_completo = os.path.join(raiz, nome_pasta)
+                            print(f" [PASTA]   {caminho_completo}")
+                            encontrados += 1
+                            
+                    # 2. Procura se algum arquivo tem o nome que digitamos
+                    for nome_arquivo in arquivos:
+                        if argumento.lower() in nome_arquivo.lower():
+                            caminho_completo = os.path.join(raiz, nome_arquivo)
+                            print(f" [ARQUIVO] {caminho_completo}")
+                            encontrados += 1
+                
+                if encontrados == 0:
+                    print(f"Nenhum item contendo '{argumento}' foi encontrado por aqui.")
+                else:
+                    print(f"\nBusca concluída: {encontrados} item(s) encontrado(s).")
+            else:
+                print("Por favor, digite o nome ou parte do nome para buscar. Exemplo: procurar relatorio")
                 
         elif comando == "mkdir":
             if argumento:
@@ -369,7 +402,7 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome do arquivo. Exemplo: 'edit notas.txt'")
                 
-        elif comando == "cor":
+        elif comando == "color":
             cores = {
                 "vermelho": "\033[31m",
                 "verde": "\033[32m",
