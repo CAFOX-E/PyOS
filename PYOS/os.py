@@ -18,6 +18,8 @@ import hashlib
 from cryptography.fernet import Fernet
 import psutil
 import random
+import urllib.request
+import unicodedata
 
 def limpar_tela():
     # Limpa a tela dependendo do sistema operacional real do usuário
@@ -334,18 +336,45 @@ def iniciar_pyos():
                             print("🏆 Ganhaste esta ronda!")
                         else: print("💀 Perdeste! O computador foi mais esperto.")
                         
-                # --- NOVO: JOGO DA FORCA ---
+                # --- NOVO: JOGO DA FORCA (PALAVRAS COM 5+ LETRAS) ---
                 elif escolha == '3':
                     print("\n--- Jogo da Forca ---")
-                    palavras = ["python", "computador", "terminal", "hacker", "sistema", "teclado", "internet", "servidor", "criptografia"]
-                    palavra_secreta = random.choice(palavras)
+                    
+                    arquivo_dicionario = "dicionario_br.txt"
+                    # Lista de emergência atualizada apenas com palavras maiores
+                    palavras = ["python", "computador", "teclado", "internet", "criptografia"] 
+                    
+                    # 1. Verifica se o dicionário já foi descarregado
+                    if not os.path.exists(arquivo_dicionario):
+                        print("A descarregar o dicionário completo de Português (aguarde uns segundos)...")
+                        try:
+                            url = "https://raw.githubusercontent.com/pythonprobr/palavras/master/palavras.txt"
+                            urllib.request.urlretrieve(url, arquivo_dicionario)
+                            print("Dicionário descarregado com sucesso!")
+                        except Exception as e:
+                            print(f"Erro ao descarregar: {e}. A usar lista de emergência.")
+                    
+                    # 2. Lê as palavras do ficheiro
+                    try:
+                        if os.path.exists(arquivo_dicionario):
+                            with open(arquivo_dicionario, 'r', encoding='utf-8') as f:
+                                # AQUI ESTÁ A MUDANÇA: Filtra para usar APENAS palavras com 5 ou mais letras!
+                                palavras = [p.strip() for p in f.readlines() if len(p.strip()) >= 5]
+                    except Exception:
+                        pass
+                        
+                    # 3. Sorteia a palavra
+                    palavra_original = random.choice(palavras).lower()
+                    
+                    # 4. Remove os acentos (ex: "computação" vira "computacao")
+                    palavra_secreta = "".join(c for c in unicodedata.normalize('NFD', palavra_original) if unicodedata.category(c) != 'Mn')
+                    
                     letras_descobertas = []
                     erros_permitidos = 6
                     
-                    print("DICA: A palavra está relacionada com tecnologia!")
+                    print(f"DICA: A palavra tem {len(palavra_secreta)} letras!")
                     
                     while True:
-                        # Monta a palavra escondida com os traços
                         palavra_oculta = ""
                         for letra in palavra_secreta:
                             if letra in letras_descobertas:
@@ -356,23 +385,23 @@ def iniciar_pyos():
                         print(f"\nPalavra: {palavra_oculta}")
                         print(f"Tentativas restantes: {erros_permitidos}")
                         
-                        # Verifica se ganhou
                         if "_" not in palavra_oculta:
-                            print("🎉 Parabéns! Escapaste da forca!")
+                            print(f"🎉 Parabéns! Escapaste da forca! A palavra era {palavra_original.upper()}.")
                             break
                             
-                        # Verifica se perdeu
                         if erros_permitidos == 0:
-                            print(f"💀 Fim de jogo! Foste enforcado. A palavra era: {palavra_secreta.upper()}")
+                            print(f"💀 Fim de jogo! Foste enforcado. A palavra era: {palavra_original.upper()}")
                             break
                             
                         letra_digitada = input("Digita uma letra (ou ':q' para sair): ").strip().lower()
                         
                         if letra_digitada == ':q': break
-                        
                         if len(letra_digitada) != 1 or not letra_digitada.isalpha():
                             print("Por favor, digita apenas uma letra válida.")
                             continue
+                            
+                        # Remove o acento também da letra digitada
+                        letra_digitada = "".join(c for c in unicodedata.normalize('NFD', letra_digitada) if unicodedata.category(c) != 'Mn')
                             
                         if letra_digitada in letras_descobertas:
                             print("Já tentaste essa letra! Tenta outra.")
