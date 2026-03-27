@@ -50,3 +50,13 @@ Improved visualization of files and folders.
   - Added 'import google.generativeai'
   Now you can communicate with the Gemini AI directly from the terminal.
   You will only need to include the requested API key in the code.
+
+# PyOS 0.9 (Server update)
+  Added two file reading modes for a server (web or ftp)
+  - Type the command `server web` or `server ftp` and the program will create a port for the local file-sharing server (LOCAL NETWORK ONLY. Not tested for use outside of it).
+  Added file encryption (FILES ONLY)
+  - With the `lock` command, you can encrypt any type of file, which will cause the program to request a password to decrypt it.
+  - Use the `unlock` command for this.
+  Added a simple hardware manager.
+  - Type the command `status` to view your computer's CPU and RAM usage.
+  - You can also use the `devices` command to see which devices are connected to your computer.
