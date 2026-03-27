@@ -1,4 +1,6 @@
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
+import pygame
 import datetime
 import sys
 import shutil
@@ -21,6 +23,7 @@ import random
 import urllib.request
 import unicodedata
 from PIL import Image
+import pyttsx3
 
 def limpar_tela():
     # Limpa a tela dependendo do sistema operacional real do usuário
@@ -123,10 +126,12 @@ def iniciar_pyos():
             print("  help           : Mostra esta lista de comandos de ajuda")
             print("  logout         : Encerra a sessão atual e volta para a tela de login")
             print("  date           : Exibe a data e hora atuais")
+            print("  time           : Mostra a previsão do tempo em ASCII Art (ex: time, ou time lisboa)")
             print("  ping           : Testa a conexão de rede com um site ou IP (ex: ping google.com)")
             print("  clear          : Limpa a tela do terminal")
             print("  list           : Lista os arquivos na pasta atual")
             print("  print          : Repete o que você digitar (ex: print Hello World!)")
+            print("  speak          : Faz o sistema ler um texto em voz alta (ex: speak Hello World!)")
             print("  calc           : Uma calculadora simples (ex: calc 5 + 5)")
             print("  play           : Abre o menu de mini-jogos do PyOS para relaxar")
             print("  ai             : Inicia uma conversa com a Inteligência Artificial (ex: ai)")
@@ -152,6 +157,7 @@ def iniciar_pyos():
             print("  csv_add        : Adiciona uma linha de dados à planilha (ex: planilha_add dados.csv)")
             print("  csv_read       : Lê e exibe uma planilha em formato de tabela (ex: planilha_ler dados.csv)")
             print("  open_image     : Abre e desenha uma imagem direto no terminal (ex: imagem foto.jpg)")
+            print("  play_audio     : Reprodutor de música em segundo plano (ex: tocar musica.mp3, tocar pausar, tocar parar)")
 
         elif comando == "help-config":
             print("\n--- Comandos Disponíveis ---")
@@ -181,6 +187,33 @@ def iniciar_pyos():
             agora = datetime.datetime.now()
             print(f"Data e hora do sistema: {agora.strftime('%d/%m/%Y %H:%M:%S')}")
 
+# Comando time
+        elif comando == "time":
+            import urllib.request
+            import urllib.parse
+            
+            print("\n--- Satélite Meteorológico PyOS ---")
+            print("Conectando à estação climática espacial... 🛰️\n")
+            
+            try:
+                # Se o usuário digitou uma cidade (ex: clima curitiba), codifica os espaços e acentos
+                cidade = urllib.parse.quote(argumento.strip()) if argumento else ""
+                
+                # O '?0' no final da URL diz ao servidor para mandar apenas o clima de AGORA (para não poluir a tela)
+                url = f"https://wttr.in/{cidade}?0"
+                
+                # O Truque: Disfarçamos o Python de 'curl' (um comando de terminal de raiz) 
+                # para o site nos devolver as cores ANSI em vez de um site HTML normal.
+                requisicao = urllib.request.Request(url, headers={'User-Agent': 'curl/7.68.0'})
+                
+                with urllib.request.urlopen(requisicao) as resposta:
+                    clima_ascii = resposta.read().decode('utf-8')
+                    print(clima_ascii)
+                    
+            except Exception as e:
+                print(f"Erro ao obter a leitura do satélite: {e}")
+                print("DICA: Verifique a sua conexão com a internet.")
+
 # Comando ping
         elif comando == "ping":
             if argumento:
@@ -207,6 +240,7 @@ def iniciar_pyos():
 # Comando clear
         elif comando == "clear":
             limpar_tela()
+
 # Comando list
         elif comando == "list":
             print(f"\nConteúdo do diretório atual ({os.getcwd()}):")
@@ -233,6 +267,30 @@ def iniciar_pyos():
 # Comando print
         elif comando == "print":
             print(argumento)
+
+# Comando speak
+        elif comando == "speak":
+            if argumento:
+                print(f"🗣️ PyOS diz: {argumento}")
+                try:
+                    # 1. Inicia o motor de voz
+                    engine = pyttsx3.init()
+                    
+                    # 2. Configura a velocidade da voz (opcional, 150 a 200 é uma boa velocidade natural)
+                    engine.setProperty('rate', 170)
+                    
+                    # 3. Faz o sistema falar!
+                    engine.say(argumento)
+                    
+                    # 4. Espera a fala terminar antes de liberar o terminal de volta para você
+                    engine.runAndWait()
+                    
+                except Exception as e:
+                    print(f"Erro no módulo de voz: {e}")
+                    print("DICA: Verifique se o volume do seu computador está ligado.")
+            else:
+                print("Por favor, digite o que eu devo falar. Exemplo: falar Sistema operacional ativado com sucesso.")
+
 # Comando calc
         elif comando == "calc":
             # Criamos um "dicionário seguro" com as funções matemáticas permitidas.
@@ -1060,6 +1118,40 @@ def iniciar_pyos():
                     print(f"Erro: O arquivo '{argumento}' não foi encontrado.")
             else:
                 print("Por favor, digite o nome da imagem. Exemplo: imagem logo.png")
+
+# Comando play_audio
+        elif comando == "play_audio":
+            if argumento:
+                # Inicializa o motor de áudio apenas quando for usado pela primeira vez
+                if not pygame.mixer.get_init():
+                    pygame.mixer.init()
+
+                acao = argumento.strip().lower()
+
+                if acao == "pause":
+                    pygame.mixer.music.pause()
+                    print("⏸️ Música em pausa.")
+                elif acao == "continue" or acao == "play":
+                    pygame.mixer.music.unpause()
+                    print("▶️ Música retomada.")
+                elif acao == "stop":
+                    pygame.mixer.music.stop()
+                    print("⏹️ Música parada.")
+                else:
+                    # Se não for nenhum comando de controlo, assume que é o nome do ficheiro
+                    if os.path.exists(argumento):
+                        try:
+                            pygame.mixer.music.load(argumento)
+                            # O -1 faz com que a música fique em loop infinito
+                            pygame.mixer.music.play(-1)
+                            print(f"🎵 A tocar agora: {argumento} (em segundo plano)")
+                            print("DICA: Use 'tocar pausar' ou 'tocar parar' para controlar o áudio.")
+                        except Exception as e:
+                            print(f"Erro ao tentar reproduzir o ficheiro. Certifique-se de que é um .mp3 ou .wav válido. Erro: {e}")
+                    else:
+                        print(f"Erro: O ficheiro '{argumento}' não foi encontrado.")
+            else:
+                print("Por favor, digite o nome da música ou o comando. Ex: tocar lofi.mp3")
 
 # Comando disk
         elif comando == "disk":
