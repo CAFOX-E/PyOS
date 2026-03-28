@@ -54,9 +54,11 @@ Improved visualization of files and folders.
 # PyOS 0.9 (Server, encryption and hardware management update)
   Added two file reading modes for a server (web or ftp)
   - Type the command `server web` or `server ftp` and the program will create a port for the local file-sharing server (LOCAL NETWORK ONLY. Not tested for use outside of it).
+ 
   Added file encryption (FILES ONLY)
   - With the `lock` command, you can encrypt any type of file, which will cause the program to request a password to decrypt it.
   - Use the `unlock` command for this.
+  
   Added a simple hardware manager.
   - Type the command `status` to view your computer's CPU and RAM usage.
   - You can also use the `devices` command to see which devices are connected to your computer.
@@ -64,8 +66,10 @@ Improved visualization of files and folders.
 # PyOS 1.0 (Games, audio and time update)
   Added 3 games to the terminal for simple entertainment.
   - Type `play`, and you'll have 3 different mini-games: "Guess the Number", "Rock, Paper, Scissors", and "Hangman".
+  
   Added visualization of local weather conditions.
   - Type `time`, and you will see the weather for your location (type a specific location next to the command to see the weather for that place).
+  
   Added audio player and speaker.
   - With the `speak` command, the terminal will speak whatever you type next to the command.
   - Using the `play_audio` command, the terminal will play any MP3 file in the background.
