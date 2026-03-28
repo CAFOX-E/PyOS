@@ -1,29 +1,23 @@
-import os
-os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
-import pygame
-import datetime
-import sys
-import shutil
-import stat
-import subprocess
-import json
-import time
-import csv
-import math
-import re
-import google.generativeai as genai
-import http.server
-import socketserver
-import socket
-import base64
-import hashlib
-from cryptography.fernet import Fernet
+# ==========================================
+# MÓDULOS NATIVOS DO PYTHON (Já vêm instalados)
+# ==========================================
+import os, sys, shutil, stat, subprocess, time, datetime, threading
+import json, csv, math, random, re, textwrap, unicodedata
+import socket, socketserver, http.server
+import urllib.request, urllib.parse, xml.etree.ElementTree as ET
+import base64, hashlib
+
+# ==========================================
+# MÓDULOS DE TERCEIROS (Instalados via PIP)
+# ==========================================
 import psutil
-import random
-import urllib.request
-import unicodedata
-from PIL import Image
+import pygame
 import pyttsx3
+import google.generativeai as genai
+from bs4 import BeautifulSoup
+from PIL import Image
+from cryptography.fernet import Fernet
+from deep_translator import GoogleTranslator
 
 def limpar_tela():
     # Limpa a tela dependendo do sistema operacional real do usuário
@@ -33,8 +27,14 @@ def iniciar_pyos():
     os.system('')
     limpar_tela()
     
+    # --- NOVO: PREPARA O BANCO DE DADOS ---
+    FOLDER_DATAS = "database"
+    if not os.path.exists(FOLDER_DATAS):
+        os.makedirs(FOLDER_DATAS)
+    # --------------------------------------
+
     # --- NOVO SISTEMA DE LOGIN COM PALAVRA-PASSE E BASE DE DADOS ---
-    arquivo_db = "usuarios_db.json"
+    arquivo_db = os.path.join(FOLDER_DATAS, "usuarios_db.json")
     
     # 1. Carrega a base de dados se ela existir, senão cria uma lista (dicionário) vazia
     if os.path.exists(arquivo_db):
@@ -116,6 +116,7 @@ def iniciar_pyos():
         elif comando == "help":
             print("\n--- Comandos de Ajuda ---")
             print("  help-basics    : Exibe os comandos básicos do programa")
+            print("  help-web       : Exibe os comandos basicos para uso web")
             print("  help-archives  : Exibe os comandos de exploração de arquivos")
             print("  help-office    : Exibe os comandos de criação e edição de arquivos de textos e planilhas")
             print("  help-config    : Exibe os comandos de configurações de usuários e outros")
@@ -129,16 +130,27 @@ def iniciar_pyos():
             print("  time           : Mostra a previsão do tempo em ASCII Art (ex: time, ou time lisboa)")
             print("  ping           : Testa a conexão de rede com um site ou IP (ex: ping google.com)")
             print("  clear          : Limpa a tela do terminal")
-            print("  list           : Lista os arquivos na pasta atual")
+            print("  rmnder         : Define um alarme falante em minutos (ex: lembrete 1 Tirar a pizza)")
             print("  print          : Repete o que você digitar (ex: print Hello World!)")
             print("  speak          : Faz o sistema ler um texto em voz alta (ex: speak Hello World!)")
+            print("  matrix         : Ativa o protetor de ecrã hacker (Pressione Ctrl+C para sair)")
             print("  calc           : Uma calculadora simples (ex: calc 5 + 5)")
             print("  play           : Abre o menu de mini-jogos do PyOS para relaxar")
+            print("  task           : Gerencia as suas tarefas diárias (ex: task add, task read, task ok)")
             print("  ai             : Inicia uma conversa com a Inteligência Artificial (ex: ai)")
             print("  server         : Inicia o compartilhamento (ex: server web OU server ftp)")
 
+        elif comando == "help-web":
+            print("  news           : Exibe as 5 principais manchetes do momento")
+            print("  price          : Mostra o valor do Dólar, Euro e Bitcoin em Reais (ex: price ou price btc)")
+            print("  browse         : Lê o texto de um site diretamente no terminal (ex: browse pt.wikipedia.org/wiki/Linux)")
+            print("  track          : Triangula a localização geográfica de um IP ou Site (ex: track google.com)")
+            print("  wiki           : Consulta o Oráculo da Wikipédia sobre qualquer assunto (ex: wiki Buraco negro)")
+            print("  translate      : Traduz textos entre idiomas (ex: traduzir en-pt Hello world)")
+
         elif comando == "help-archives":
             print("\n--- Comandos Disponíveis ---")
+            print("  list           : Lista os arquivos na pasta atual")
             print("  cd             : Navega entre as pastas (ex: cd nome_da_pasta ou cd .. para voltar)")
             print("  search         : Busca arquivos e pastas pelo nome (ex: search projeto)")
             print("  mkdir          : Cria uma nova pasta (ex: mkdir nova_pasta)")
@@ -148,16 +160,17 @@ def iniciar_pyos():
             print("  empty          : Apaga TODOS os arquivos de uma pasta de uma vez (ex: empty minha_pasta)")
             print("  lock           : Criptografa um arquivo com senha (ex: lock segredo.txt)")
             print("  unlock         : Descriptografa um arquivo bloqueado (ex: unlock segredo.txt.lock)")
+            print("  password       : Cofre criptografado de senhas (ex: password generate, password save, password read)")
             
         elif comando == "help-office":
-            print("  txt_read       : Exibe o texto de um arquivo no terminal (ex: read notas.txt)")
-            print("  txt_write      : Cria/edita um arquivo de texto (ex: write notas.txt)")
-            print("  txt_edit       : Edita um arquivo de texto já existente (ex: edit notas.txt)")
-            print("  csv_write      : Cria uma nova planilha (ex: planilha_criar dados.csv)")
-            print("  csv_add        : Adiciona uma linha de dados à planilha (ex: planilha_add dados.csv)")
-            print("  csv_read       : Lê e exibe uma planilha em formato de tabela (ex: planilha_ler dados.csv)")
-            print("  open_image     : Abre e desenha uma imagem direto no terminal (ex: imagem foto.jpg)")
-            print("  play_audio     : Reprodutor de música em segundo plano (ex: tocar musica.mp3, tocar pausar, tocar parar)")
+            print("  txt_read       : Exibe o texto de um arquivo no terminal (ex: txt_read notas.txt)")
+            print("  txt_write      : Cria/edita um arquivo de texto (ex: txt_write notas.txt)")
+            print("  txt_edit       : Edita um arquivo de texto já existente (ex: txt_edit notas.txt)")
+            print("  csv_write      : Cria uma nova planilha (ex: csv_write dados.csv)")
+            print("  csv_add        : Adiciona uma linha de dados à planilha (ex: csv_add dados.csv)")
+            print("  csv_read       : Lê e exibe uma planilha em formato de tabela (ex: csv_read dados.csv)")
+            print("  open_image     : Abre e desenha uma imagem direto no terminal (ex: open_image foto.jpg)")
+            print("  audio          : Reprodutor de música em segundo plano (ex: audio musica.mp3, audio pause, audio stop)")
 
         elif comando == "help-config":
             print("\n--- Comandos Disponíveis ---")
@@ -188,10 +201,7 @@ def iniciar_pyos():
             print(f"Data e hora do sistema: {agora.strftime('%d/%m/%Y %H:%M:%S')}")
 
 # Comando time
-        elif comando == "time":
-            import urllib.request
-            import urllib.parse
-            
+        elif comando == "time":          
             print("\n--- Satélite Meteorológico PyOS ---")
             print("Conectando à estação climática espacial... 🛰️\n")
             
@@ -241,29 +251,51 @@ def iniciar_pyos():
         elif comando == "clear":
             limpar_tela()
 
-# Comando list
-        elif comando == "list":
-            print(f"\nConteúdo do diretório atual ({os.getcwd()}):")
-            try:
-                # Pega todos os itens (pastas e arquivos)
-                itens = os.listdir('.')
+# Comando rmnder
+        elif comando == "rmnder":
+            # Verifica se o usuário digitou o tempo e a mensagem (ex: "5 Tirar a pizza")
+            partes = argumento.split(" ", 1)
+            
+            if len(partes) >= 2 and partes[0].replace('.', '', 1).isdigit():
+                minutos = float(partes[0])
+                mensagem = partes[1]
                 
-                # Primeiro, mostramos as pastas
-                for item in itens:
-                    if os.path.isdir(item):
-                        print(f" [PASTA]   {item}")
-                        
-                # Depois, mostramos os arquivos
-                for item in itens:
-                    if os.path.isfile(item):
-                        print(f" [ARQUIVO] {item}")
-                        
-                if not itens:
-                    print(" (A pasta está vazia)")
+                # Esta é a função que vai rodar escondida no fundo do sistema
+                def iniciar_cronometro(tempo_minutos, texto_lembrete, nome_usuario):
+                    import time
+                    # Converte minutos para segundos e pausa a thread invisível
+                    time.sleep(tempo_minutos * 60)
                     
-            except Exception as e:
-                print(f"Erro ao ler diretório: {e}")
+                    # Quando o tempo acaba, ele "invade" o terminal para te avisar
+                    print(f"\n\n⏰ [LEMBRETE DO SISTEMA]: {texto_lembrete.upper()}!")
+                    # Reimprime o cursor do terminal para não bagunçar a sua tela
+                    print(f"[{nome_usuario}] > ", end="", flush=True)
+                    
+                    # Tenta falar em voz alta usando o motor de voz do PyOS
+                    try:
+                        import pyttsx3
+                        engine = pyttsx3.init()
+                        engine.setProperty('rate', 170)
+                        engine.say(f"Atenção, lembrete: {texto_lembrete}")
+                        engine.runAndWait()
+                    except Exception:
+                        pass
+
+                # Prepara a "dimensão paralela" (Thread) com a nossa função
+                thread_alarme = threading.Thread(target=iniciar_cronometro, args=(minutos, mensagem, usuario))
                 
+                # O daemon=True faz com que o alarme seja destruído automaticamente se você fechar o PyOS
+                thread_alarme.daemon = True 
+                
+                # Dá o "play" no cronômetro invisível!
+                thread_alarme.start()
+                
+                print(f"⏰ Lembrete configurado com sucesso para daqui a {minutos} minuto(s).")
+                print("Pode continuar a usar o sistema normalmente!")
+            else:
+                print("Formato inválido. Use: lembrete [minutos] [mensagem]")
+                print("Exemplo: lembrete 2.5 Olhar o pão no forno")
+
 # Comando print
         elif comando == "print":
             print(argumento)
@@ -290,6 +322,50 @@ def iniciar_pyos():
                     print("DICA: Verifique se o volume do seu computador está ligado.")
             else:
                 print("Por favor, digite o que eu devo falar. Exemplo: falar Sistema operacional ativado com sucesso.")
+
+# Comando matrix
+        elif comando == "matrix":
+            print("\033[?25l") # Truque ninja: Esconde o cursor a piscar do terminal
+            try:
+                # O alfabeto do nosso protetor de ecrã (Letras, números, símbolos e até uns Katanas japoneses)
+                caracteres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*アイウエオカキクケコサシスセソタチツテト"
+                
+                # Descobre o tamanho exato da janela do seu terminal neste momento
+                largura = shutil.get_terminal_size().columns
+                
+                # Cria uma lista para controlar o tamanho do "rastro" que cai em cada coluna
+                gotas = [0] * largura
+                
+                while True:
+                    linha = ""
+                    for i in range(largura):
+                        # Se a coluna não tiver uma gota a cair, damos uma chance (2%) de criar uma nova
+                        if gotas[i] == 0:
+                            if random.random() > 0.98: 
+                                gotas[i] = random.randint(10, 25) # O rastro terá entre 10 e 25 caracteres
+                                # A ponta da gota que está a cair é BRANCA e brilhante
+                                linha += "\033[1;37m" + random.choice(caracteres)
+                            else:
+                                linha += " " # Coluna vazia
+                        else:
+                            # Se a gota já está a cair, desenha o rastro VERDE
+                            # Intercala entre verde claro e verde escuro para dar um efeito de falha (glitch)
+                            cor = "\033[1;32m" if random.random() > 0.4 else "\033[0;32m"
+                            linha += cor + random.choice(caracteres)
+                            gotas[i] -= 1 # Diminui o tamanho do rastro
+                            
+                    # Imprime a linha inteira gerada e reseta a cor no final
+                    print(linha + "\033[0m")
+                    
+                    import time
+
+                    # Pausa de milissegundos para os seus olhos conseguirem ver a chuva a cair
+                    time.sleep(0.04) 
+                    
+            except KeyboardInterrupt:
+                # Quando o utilizador aperta Ctrl+C (Interrupção de Teclado)
+                print("\033[0m\033[?25h") # Reseta as cores e traz o cursor do rato de volta
+                print("\n\n\033[1;32m[Sistema] Desconectado da Matrix.\033[0m")
 
 # Comando calc
         elif comando == "calc":
@@ -487,11 +563,85 @@ def iniciar_pyos():
                 else:
                     print("Escolha inválida. Tenta novamente.")
 
+# Comando task
+        elif comando == "task":
+            
+            # O ficheiro onde o PyOS vai guardar a sua vida
+            arquivo_tarefas = os.path.join(FOLDER_DATAS, "tarefas_pyos.json")
+            
+            # 1. Carrega as tarefas existentes (se o ficheiro já existir)
+            tarefas = []
+            if os.path.exists(arquivo_tarefas):
+                try:
+                    with open(arquivo_tarefas, 'r', encoding='utf-8') as f:
+                        tarefas = json.load(f)
+                except Exception:
+                    pass
+            
+            # Se o utilizador digitou apenas "task", mostramos o manual de uso
+            if not argumento:
+                print("\n\033[1;36m========== 📋 GERENCIADOR DE TAREFAS ==========\033[0m")
+                print("Comandos disponíveis:")
+                print("  \033[1;33mtask add [texto]\033[0m : Adiciona uma nova tarefa")
+                print("  \033[1;33mtask read\033[0m        : Lista todas as suas tarefas")
+                print("  \033[1;33mtask ok [numero]\033[0m : Marca uma tarefa como concluída")
+                print("  \033[1;33mtask del [numero]\033[0m: Apaga uma tarefa da lista")
+                print("\033[1;36m===============================================\033[0m\n")
+                continue # Volta para o início do loop sem dar erro
+
+            # Divide o que o utilizador digitou (ex: "add" e "Estudar Python")
+            partes = argumento.split(" ", 1)
+            acao = partes[0].lower()
+            detalhe = partes[1] if len(partes) > 1 else ""
+
+            # --- LÓGICA DE CRUD (Create, Read, Update, Delete) ---
+            if acao == "add" and detalhe:
+                tarefas.append({"texto": detalhe, "concluida": False})
+                print(f"✅ \033[1;32mTarefa adicionada à base de dados:\033[0m {detalhe}")
+            
+            elif acao in ["read", "list"]:
+                print("\n\033[1;36m========== 📋 AS SUAS TAREFAS ==========\033[0m")
+                if not tarefas:
+                    print("Nenhuma tarefa pendente. Você está livre! 🎮")
+                else:
+                    for i, t in enumerate(tarefas):
+                        # Pinta o [X] de Verde e o [ ] de Vermelho
+                        status = "\033[1;32m[X]\033[0m" if t["concluida"] else "\033[1;31m[ ]\033[0m"
+                        # Risca o texto se estiver concluído usando código ANSI especial (\033[9m)
+                        texto = f"\033[9m{t['texto']}\033[0m" if t["concluida"] else t['texto']
+                        print(f" {i+1}. {status} {texto}")
+                print("\033[1;36m========================================\033[0m\n")
+            
+            elif acao == "ok" and detalhe.isdigit():
+                idx = int(detalhe) - 1
+                if 0 <= idx < len(tarefas):
+                    tarefas[idx]["concluida"] = True
+                    print(f"🎉 \033[1;32mTarefa {idx+1} concluída!\033[0m Excelente trabalho.")
+                else:
+                    print("❌ Número de tarefa inválido.")
+                    
+            elif acao == "del" and detalhe.isdigit():
+                idx = int(detalhe) - 1
+                if 0 <= idx < len(tarefas):
+                    removida = tarefas.pop(idx)
+                    print(f"🗑️ \033[1;31mTarefa apagada:\033[0m {removida['texto']}")
+                else:
+                    print("❌ Número de tarefa inválido.")
+            else:
+                print("❌ Comando de tarefa não reconhecido. Digite apenas 'tarefa' para ajuda.")
+
+            # 2. Salva as alterações de volta no disco rígido
+            try:
+                with open(arquivo_tarefas, 'w', encoding='utf-8') as f:
+                    json.dump(tarefas, f, ensure_ascii=False, indent=4)
+            except Exception as e:
+                print(f"Erro crítico ao salvar as tarefas: {e}")
+
 # Comando ai
         elif comando == "ai":
             print("\n--- Iniciando Conexão Neural (PyOS AI) ---")
             
-            arquivo_config = "config_db.json"
+            arquivo_config = os.path.join(FOLDER_DATAS, "config_db.json")
             # Carrega as configurações para ver se já temos a chave da API
             if os.path.exists(arquivo_config):
                 with open(arquivo_config, 'r', encoding='utf-8') as f:
@@ -641,6 +791,308 @@ def iniciar_pyos():
                         print(f"\nErro no servidor FTP: {e}")
             else:
                 print("Por favor, escolha o modo. Exemplo: server web OU server ftp")
+
+# Comando news
+        elif comando == "news":
+            print("\n--- Central de Notícias PyOS ---")
+            print("Conectando aos satélites de informação... 📡\n")
+            
+            try:
+                # Usamos o RSS do Google News focado nas principais notícias (em Português)
+                url = "https://news.google.com/rss?hl=pt-BR&gl=BR&ceid=BR:pt-419"
+                
+                # Disfarçamos o PyOS de navegador normal para o servidor não bloquear a nossa conexão
+                requisicao = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                
+                # Baixa o arquivo XML com as notícias
+                with urllib.request.urlopen(requisicao) as resposta:
+                    dados_xml = resposta.read()
+                    
+                # A mágica do Python: Transforma o texto XML numa árvore de dados que podemos navegar
+                raiz = ET.fromstring(dados_xml)
+                
+                # Procura por todos os 'itens' (que são as notícias) dentro do 'canal' do RSS
+                noticias_encontradas = raiz.findall('./channel/item')
+                
+                if not noticias_encontradas:
+                    print("Nenhuma notícia encontrada no momento.")
+                else:
+                    # Pega apenas as 5 primeiras notícias da lista
+                    for i, item in enumerate(noticias_encontradas[:5], 1):
+                        titulo = item.find('title').text
+                        link = item.find('link').text
+                        
+                        # Imprime o título e o link formatados
+                        print(f"{i}. 📰 {titulo}")
+                        print(f"   🔗 {link}\n")
+                        
+                print("-" * 65)
+                print("DICA: Segure a tecla 'Ctrl' (ou 'Cmd' no Mac) e clique no link para abrir no seu navegador real!")
+                
+            except Exception as e:
+                print(f"Erro ao buscar notícias: {e}")
+                print("DICA: Verifique a sua conexão com a internet.")
+
+# Comando price
+        elif comando == "price":
+            print(f"\n\033[1;32m========== 📈 PAINEL FINANCEIRO PyOS ==========\033[0m")
+            print("Conectando aos servidores da Bolsa de Valores...\n")
+            
+            # Define qual moeda buscar (se não digitar nada, mostra todas)
+            moeda_escolhida = argumento.upper().strip() if argumento else "TODAS"
+            
+            try:
+                # URL da AwesomeAPI que traz as cotações em tempo real para o BRL (Real Brasileiro)
+                url = "https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL,BTC-BRL"
+                requisicao = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                
+                with urllib.request.urlopen(requisicao) as resposta:
+                    # Lê a resposta da internet e converte o JSON para um dicionário Python
+                    dados = json.loads(resposta.read().decode('utf-8'))
+                    
+                # Função interna para formatar e imprimir cada moeda bonitinha na tela
+                def exibir_moeda(sigla, nome, dados_moeda):
+                    valor = float(dados_moeda['bid'])
+                    variacao = float(dados_moeda['pctChange'])
+                    
+                    # Define a cor da variação (Verde para alta, Vermelho para baixa)
+                    cor_var = "\033[1;32m▲" if variacao > 0 else "\033[1;31m▼"
+                    
+                    # Formata o número para o padrão brasileiro (R$ 5.12)
+                    if sigla == "BTC":
+                        # O Bitcoin é um valor muito alto, então formatamos com separador de milhar
+                        valor_str = f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                    else:
+                        valor_str = f"{valor:.2f}".replace(".", ",")
+                        
+                    print(f"💰 \033[1;37m{nome} ({sigla}):\033[0m R$ {valor_str}  {cor_var} {variacao}%\033[0m")
+
+                # Exibe de acordo com o que o usuário pediu
+                if moeda_escolhida in ["USD", "TODAS"]:
+                    exibir_moeda("USD", "Dólar Comercial", dados['USDBRL'])
+                if moeda_escolhida in ["EUR", "TODAS"]:
+                    exibir_moeda("EUR", "Euro          ", dados['EURBRL'])
+                if moeda_escolhida in ["BTC", "TODAS"]:
+                    exibir_moeda("BTC", "Bitcoin       ", dados['BTCBRL'])
+                    
+                if moeda_escolhida not in ["USD", "EUR", "BTC", "TODAS"]:
+                    print(f"❌ Moeda '{moeda_escolhida}' não encontrada no acesso rápido.")
+                    print("Tente digitar apenas: cotacao usd, cotacao eur ou cotacao btc.")
+                    
+            except Exception as e:
+                print(f"\033[1;31mErro ao acessar os dados financeiros: {e}\033[0m")
+                print("DICA: Verifique a sua conexão com a internet ou se a API está no ar.")
+                
+            print(f"\033[1;32m===============================================\033[0m\n")
+
+# Comando browse
+        elif comando == "browse":
+            if argumento:
+                # \033[1;36m deixa o texto em Ciano Negrito, e \033[0m reseta a cor
+                print(f"\n\033[1;36m========== 🌐 NAVEGADOR PyOS LYNX ==========\033[0m")
+                
+                url = argumento if argumento.startswith('http') else 'http://' + argumento
+                print(f"\033[33mAcessando:\033[0m {url}\n") # \033[33m é Amarelo
+                
+                try:
+                    requisicao = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                    
+                    with urllib.request.urlopen(requisicao) as resposta:
+                        html_bruto = resposta.read().decode('utf-8', errors='ignore')
+                        
+                    soup = BeautifulSoup(html_bruto, 'html.parser')
+                    
+                    for elemento_lixo in soup(["script", "style", "nav", "footer", "header", "aside", "form"]):
+                        elemento_lixo.extract()
+                        
+                    texto_limpo = soup.get_text(separator='\n')
+                    linhas_formatadas = [linha.strip() for linha in texto_limpo.splitlines() if linha.strip()]
+                    
+                    # --- A MÁGICA DA FORMATAÇÃO DE TEXTO ---
+                    linhas_exibidas = 0
+                    limite_linhas = 40 # Reduzimos um pouco o limite para a leitura ficar mais focada
+                    
+                    for linha in linhas_formatadas:
+                        if linhas_exibidas >= limite_linhas:
+                            break
+                            
+                        # Se a linha for muito curta (como um menu que sobrou), ignoramos para manter a tela limpa
+                        if len(linha) < 15:
+                            continue
+                            
+                        # O textwrap vai "dobrar" o texto para não passar de 80 caracteres de largura
+                        paragrafo_bonito = textwrap.fill(linha, width=80)
+                        
+                        print(paragrafo_bonito)
+                        print() # Imprime uma linha em branco para separar os parágrafos
+                        
+                        # Conta quantas linhas reais esse parágrafo ocupou na tela
+                        linhas_exibidas += paragrafo_bonito.count('\n') + 1 
+                    # ---------------------------------------
+                    
+                    if len(linhas_formatadas) > limite_linhas:
+                        print(f"\033[1;30m[... Fim da prévia do Modo Leitura ...]\033[0m")
+                        
+                    print(f"\033[1;36m=============================================\033[0m\n")
+                    
+                except Exception as e:
+                    print(f"\033[1;31mErro ao carregar a página: {e}\033[0m") # Vermelho para erro
+                    print("DICA: Verifique se o link está correto (ex: pt.wikipedia.org).")
+            else:
+                print("Por favor, digite o link do site. Exemplo: navegar pt.wikipedia.org/wiki/Python")
+
+# Comando list
+        elif comando == "list":
+            print(f"\nConteúdo do diretório atual ({os.getcwd()}):")
+            try:
+                # Pega todos os itens (pastas e arquivos)
+                itens = os.listdir('.')
+                
+                # Primeiro, mostramos as pastas
+                for item in itens:
+                    if os.path.isdir(item):
+                        print(f" [PASTA]   {item}")
+                        
+                # Depois, mostramos os arquivos
+                for item in itens:
+                    if os.path.isfile(item):
+                        print(f" [ARQUIVO] {item}")
+                        
+                if not itens:
+                    print(" (A pasta está vazia)")
+                    
+            except Exception as e:
+                print(f"Erro ao ler diretório: {e}")
+
+# Comando track
+        elif comando == "track":
+            if argumento:
+                # \033[1;36m é a cor Ciano (Azul claro brilhante)
+                print(f"\n\033[1;36m========== 🌍 RASTREADOR GLOBAL PyOS ==========\033[0m")
+                print(f"A triangular o alvo: {argumento}...\n")
+                
+                try:
+                    # Se o utilizador digitar com "https://", limpamos para o radar funcionar bem
+                    alvo = argumento.replace("https://", "").replace("http://", "").split("/")[0]
+                    
+                    # API gratuita de geolocalização (não precisa de chave)
+                    url = f"http://ip-api.com/json/{alvo}"
+                    requisicao = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+                    
+                    with urllib.request.urlopen(requisicao) as resposta:
+                        dados = json.loads(resposta.read().decode('utf-8'))
+                        
+                    # Verifica se a API conseguiu encontrar o alvo com sucesso
+                    if dados.get("status") == "success":
+                        # Imprime os dados formatados com cores (Amarelo para as etiquetas)
+                        print(f"📍 \033[1;33mIP Alvo:\033[0m      {dados.get('query')}")
+                        print(f"🏙️ \033[1;33mCidade:\033[0m       {dados.get('city')} - {dados.get('regionName')}")
+                        print(f"🏳️ \033[1;33mPaís:\033[0m         {dados.get('country')} ({dados.get('countryCode')})")
+                        print(f"🏢 \033[1;33mProvedor:\033[0m     {dados.get('isp')}")
+                        print(f"🗺️ \033[1;33mCoordenadas:\033[0m  Lat {dados.get('lat')}, Lon {dados.get('lon')}")
+                        print(f"🕒 \033[1;33mFuso Horário:\033[0m {dados.get('timezone')}")
+                        
+                        # Easter Egg: Link direto para o mapa
+                        link_mapa = f"https://www.google.com/maps/search/?api=1&query={dados.get('lat')},{dados.get('lon')}"
+                        print(f"\n🔗 \033[1;34mSatélite (Clique com Ctrl):\033[0m {link_mapa}")
+                    else:
+                        print(f"❌ \033[1;31mFalha na triangulação:\033[0m Não foi possível localizar '{alvo}'.")
+                        
+                except Exception as e:
+                    print(f"\033[1;31mErro de conexão com os satélites: {e}\033[0m")
+                    print("DICA: Verifique a sua conexão com a internet.")
+                    
+                print(f"\033[1;36m===============================================\033[0m\n")
+            else:
+                print("Por favor, digite um IP ou site. Exemplo: rastrear google.com ou rastrear 8.8.8.8")
+
+# Comando wiki
+        elif comando == "wiki":
+            if argumento:
+                # Cor Azul Escuro/Anil (\033[1;34m) para combinar com a identidade da Wikipédia
+                print(f"\n\033[1;34m========== 📚 ORÁCULO WIKIPÉDIA ==========\033[0m")
+                print(f"Consultando os arquivos da humanidade sobre: '{argumento}'...\n")
+                
+                try:
+                    # Prepara o nome que o usuário digitou para virar um link válido (ex: "Buraco negro" vira "Buraco%20negro")
+                    termo_busca = urllib.parse.quote(argumento.strip().capitalize())
+                    
+                    # API oficial da Wikipédia que devolve apenas o Resumo em Português
+                    url = f"https://pt.wikipedia.org/api/rest_v1/page/summary/{termo_busca}"
+                    
+                    # A Wikipédia exige um User-Agent para saber quem está acessando
+                    requisicao = urllib.request.Request(url, headers={'User-Agent': 'PyOS/1.0 (Terminal Hacking)'})
+                    
+                    with urllib.request.urlopen(requisicao) as resposta:
+                        dados = json.loads(resposta.read().decode('utf-8'))
+                        
+                    # Se a API retornou um resumo (extract)
+                    if 'extract' in dados:
+                        resumo = dados['extract']
+                        
+                        # Usa o textwrap para formatar o texto em 80 colunas, ficando igual a um livro
+                        paragrafos = textwrap.wrap(resumo, width=80)
+                        for linha in paragrafos:
+                            print(linha)
+                            
+                        # Easter Egg: Deixa o link direto caso você queira ler o resto no navegador
+                        if 'content_urls' in dados and 'desktop' in dados['content_urls']:
+                            link_completo = dados['content_urls']['desktop']['page']
+                            print(f"\n🔗 \033[1;36mLeia o artigo completo em:\033[0m {link_completo}")
+                    else:
+                        print(f"❌ Não encontrei um resumo exato para '{argumento}'.")
+                        
+                except urllib.error.HTTPError as e:
+                    # O erro 404 significa que a página não existe lá na Wikipédia
+                    if e.code == 404:
+                        print(f"❌ \033[1;31mArtigo não encontrado:\033[0m A Wikipédia não tem uma página exata com o nome '{argumento}'.")
+                        print("DICA: Tente ser mais específico ou verificar a ortografia (ex: wiki Albert Einstein).")
+                    else:
+                        print(f"Erro na comunicação com a Wikipédia: {e}")
+                except Exception as e:
+                    print(f"\033[1;31mErro de conexão: {e}\033[0m")
+                    
+                print(f"\033[1;34m==========================================\033[0m\n")
+            else:
+                print("Por favor, digite o que deseja pesquisar. Exemplo: wiki Inteligência artificial")
+
+# Comando translate
+        elif comando == "translate":
+            if argumento:
+                partes = argumento.split(" ", 1)
+                
+                if len(partes) >= 2 and "-" in partes[0]:
+                    idiomas = partes[0].strip() 
+                    texto = partes[1].strip()
+                    
+                    try:
+                        origem, destino = idiomas.split("-", 1)
+                        
+                        print(f"\n\033[1;35m========== 🌐 TRADUTOR GOOGLE ==========\033[0m")
+                        print(f"Traduzindo de [\033[1;33m{origem.upper()}\033[0m] para [\033[1;33m{destino.upper()}\033[0m]...\n")
+                        
+                        # A MÁGICA: Usando o motor do Google Translate por baixo dos panos!
+                        traducao = GoogleTranslator(source=origem, target=destino).translate(texto)
+                            
+                        print(f"📝 \033[1;32mOriginal:\033[0m {texto}")
+                        
+                        print(f"✨ \033[1;36mTradução:\033[0m")
+                        linhas_traducao = textwrap.wrap(traducao, width=75)
+                        for linha in linhas_traducao:
+                            print(f"   {linha}")
+                            
+                    except ValueError:
+                        print("❌ Formato de idioma inválido. Use hífen. Exemplo: en-pt, pt-en")
+                    except Exception as e:
+                        print(f"\033[1;31mErro na tradução: {e}\033[0m")
+                        print("DICA: Verifique se as siglas dos idiomas estão corretas (ex: 'en', 'pt', 'es').")
+                        
+                    print(f"\033[1;35m========================================\033[0m\n")
+                else:
+                    print("Formato inválido. Use: translate [origem]-[destino] [texto]")
+                    print("Exemplo: translate en-pt The quick brown fox jumps over the lazy dog")
+            else:
+                print("Por favor, digite o idioma e o texto. Ex: translate pt-en Olá mundo")
 
 # Comando cd
         elif comando == "cd":
@@ -874,7 +1326,125 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome do arquivo. Exemplo: destravar diario.txt.lock")
 
-# Comando read
+# Comando password
+        elif comando == "password":
+            # Arquivos do nosso sistema de segurança
+            arquivo_chave = os.path.join(FOLDER_DATAS, ".key_master.key")
+            arquivo_cofre = os.path.join(FOLDER_DATAS, "safe_pyos.json")
+            
+            # 1. Sistema de Chave Mestra (Gera uma chave AES se você ainda não tiver uma)
+            if not os.path.exists(arquivo_chave):
+                chave_nova = Fernet.generate_key()
+                with open(arquivo_chave, "wb") as f_chave:
+                    f_chave.write(chave_nova)
+            
+            # Carrega a chave mestra para a memória do PyOS
+            with open(arquivo_chave, "rb") as f_chave:
+                chave = f_chave.read()
+            
+            motor_criptografia = Fernet(chave)
+            
+            # Se o usuário digitou apenas "senha", mostra o manual
+            if not argumento:
+                print("\n\033[1;31m========== 🔒 COFRE CRIPTOGRAFADO ==========\033[0m")
+                print("Comandos de Segurança:")
+                print("  \033[1;33mpassword generate\033[0m                : Cria uma senha inquebrável de 16 caracteres")
+                print("  \033[1;33mpassword save [serviço] [senha]\033[0m  : Criptografa e guarda uma senha")
+                print("  \033[1;33mpassword read\033[0m                    : Destranca o cofre e mostra as suas senhas")
+                print("  \033[1;33mpassword delete [serviço]\033[0m        : Remove uma senha do cofre para sempre")
+                print("\033[1;31m============================================\033[0m\n")
+                continue
+                
+            # Divide o argumento. O "2" garante que a senha não seja cortada se tiver espaços!
+            partes = argumento.split(" ", 2)
+            acao = partes[0].lower()
+            
+            if acao == "generate":
+                # Mistura letras maiúsculas, minúsculas, números e símbolos difíceis
+                caracteres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%&*_-=+"
+                senha_forte = "".join(random.choice(caracteres) for _ in range(16))
+                
+                print(f"\n🛡️ \033[1;32mNova Senha Gerada:\033[0m \033[1;37m{senha_forte}\033[0m")
+                print("DICA: Use 'password save [serviço] [senha]' para salvá-la no cofre!\n")
+                
+            elif acao == "save":
+                if len(partes) < 3:
+                    print("❌ Erro de sintaxe. Use: password save [nome_do_site] [sua_senha]")
+                else:
+                    servico = partes[1].capitalize()
+                    senha_plana = partes[2]
+                    
+                    # A MÁGICA: Transforma a senha numa hash ilegível
+                    senha_criptografada = motor_criptografia.encrypt(senha_plana.encode()).decode()
+                    
+                    # Carrega o cofre atual (se existir)
+                    cofre = {}
+                    if os.path.exists(arquivo_cofre):
+                        try:
+                            with open(arquivo_cofre, "r", encoding="utf-8") as f:
+                                cofre = json.load(f)
+                        except Exception:
+                            pass
+                            
+                    # Guarda a versão criptografada e salva no disco
+                    cofre[servico] = senha_criptografada
+                    
+                    with open(arquivo_cofre, "w", encoding="utf-8") as f:
+                        json.dump(cofre, f, indent=4)
+                        
+                    print(f"🔒 \033[1;32mSucesso!\033[0m A senha do serviço '\033[1;33m{servico}\033[0m' foi criptografada e trancada no cofre.")
+
+            elif acao in ["read", "list"]:
+                if not os.path.exists(arquivo_cofre):
+                    print("📭 O seu cofre está vazio. Use 'password save' primeiro.")
+                else:
+                    try:
+                        with open(arquivo_cofre, "r", encoding="utf-8") as f:
+                            cofre = json.load(f)
+                            
+                        print("\n\033[1;31m========== 🔓 COFRE ABERTO ==========\033[0m")
+                        if not cofre:
+                            print("O cofre não tem senhas salvas.")
+                        else:
+                            for servico, senha_cifra in cofre.items():
+                                # A MÁGICA REVERSA: Destranca a senha usando a Chave Mestra
+                                senha_revelada = motor_criptografia.decrypt(senha_cifra.encode()).decode()
+                                print(f" 🔑 \033[1;33m{servico}:\033[0m {senha_revelada}")
+                        print("\033[1;31m=====================================\033[0m\n")
+                    except Exception as e:
+                        print(f"❌ Erro crítico ao destrancar o cofre. A chave mestra foi alterada? Erro: {e}")
+            
+            elif acao in ["delete", "deletar", "remover"]:
+                if len(partes) < 2:
+                    print("❌ Erro de sintaxe. Use: password delete [nome_do_serviço]")
+                else:
+                    servico = partes[1].capitalize()
+                    
+                    if os.path.exists(arquivo_cofre):
+                        try:
+                            with open(arquivo_cofre, "r", encoding="utf-8") as f:
+                                cofre = json.load(f)
+                                
+                            # Verifica se o serviço existe mesmo no cofre
+                            if servico in cofre:
+                                del cofre[servico] # Apaga do dicionário
+                                
+                                # Salva o cofre atualizado de volta no disco
+                                with open(arquivo_cofre, "w", encoding="utf-8") as f:
+                                    json.dump(cofre, f, indent=4)
+                                    
+                                print(f"🗑️ \033[1;31mDestruído:\033[0m A senha de '\033[1;33m{servico}\033[0m' foi apagada permanentemente do cofre.")
+                            else:
+                                print(f"❌ O serviço '{servico}' não foi encontrado nas suas anotações.")
+                                
+                        except Exception as e:
+                            print(f"Erro ao acessar o cofre: {e}")
+                    else:
+                        print("📭 O seu cofre já está vazio ou ainda não foi criado.")
+            else:
+                print("❌ Comando de cofre não reconhecido. Digite apenas 'password' para ajuda.")
+
+# Comando txt_read
         elif comando == "txt_read":
             if argumento:
                 # Verifica se o que o usuário digitou é realmente um arquivo
@@ -893,9 +1463,9 @@ def iniciar_pyos():
                 else:
                     print(f"Erro: '{argumento}' não foi encontrado ou não é um arquivo válido.")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: 'read notas.txt'")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'txt_read notas.txt'")
                 
-# Comando write
+# Comando txt_write
         elif comando == "txt_write":
             if argumento:
                 print(f"\n--- Escrevendo em: {argumento} ---")
@@ -926,9 +1496,9 @@ def iniciar_pyos():
                 except Exception as e:
                     print(f"Erro ao salvar o arquivo: {e}")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: 'write notas.txt'")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'txt_write notas.txt'")
 
-# Comando edit
+# Comando txt_edit
         elif comando == "txt_edit":
             if argumento:
                 # Verifica se o arquivo existe antes de tentar editar
@@ -972,9 +1542,9 @@ def iniciar_pyos():
                     except Exception as e:
                         print(f"Erro ao editar o arquivo: {e}")
                 else:
-                    print(f"Erro: '{argumento}' não foi encontrado. Se quiser criar um novo, use o comando 'write'.")
+                    print(f"Erro: '{argumento}' não foi encontrado. Se quiser criar um novo, use o comando 'txt_write'.")
             else:
-                print("Por favor, digite o nome do arquivo. Exemplo: 'edit notas.txt'")
+                print("Por favor, digite o nome do arquivo. Exemplo: 'txt_edit notas.txt'")
 
 # Comando csv_write
         elif comando == "csv_write":
@@ -984,7 +1554,7 @@ def iniciar_pyos():
                     argumento += '.csv'
                     
                 if os.path.exists(argumento):
-                    print(f"Erro: O arquivo '{argumento}' já existe. Use 'planilha_add' para inserir dados.")
+                    print(f"Erro: O arquivo '{argumento}' já existe. Use 'csv_add' para inserir dados.")
                 else:
                     print(f"\n--- Criando Planilha: {argumento} ---")
                     colunas = input("Digite o nome das colunas separados por vírgula (ex: Nome, Idade, Email): ")
@@ -1001,7 +1571,7 @@ def iniciar_pyos():
                     except Exception as e:
                         print(f"Erro ao criar planilha: {e}")
             else:
-                print("Por favor, digite o nome da planilha. Exemplo: planilha_criar clientes.csv")
+                print("Por favor, digite o nome da planilha. Exemplo: csv_write clientes.csv")
 
 # Comando csv_add
         elif comando == "csv_add":
@@ -1035,9 +1605,9 @@ def iniciar_pyos():
                     except Exception as e:
                         print(f"Erro ao editar planilha: {e}")
                 else:
-                    print(f"Erro: Planilha '{argumento}' não encontrada. Crie primeiro com 'planilha_criar'.")
+                    print(f"Erro: Planilha '{argumento}' não encontrada. Crie primeiro com 'csv_write'.")
             else:
-                print("Por favor, digite o nome da planilha. Exemplo: planilha_add clientes.csv")
+                print("Por favor, digite o nome da planilha. Exemplo: cdv_add clientes.csv")
 
 # Comando csv_read
         elif comando == "csv_read":
@@ -1074,7 +1644,7 @@ def iniciar_pyos():
                 else:
                     print(f"Erro: Planilha '{argumento}' não encontrada.")
             else:
-                print("Por favor, digite o nome da planilha. Exemplo: planilha_ler clientes.csv")
+                print("Por favor, digite o nome da planilha. Exemplo: csv_read clientes.csv")
 
 # Comando open_image
         elif comando == "open_image":
@@ -1117,10 +1687,10 @@ def iniciar_pyos():
                 else:
                     print(f"Erro: O arquivo '{argumento}' não foi encontrado.")
             else:
-                print("Por favor, digite o nome da imagem. Exemplo: imagem logo.png")
+                print("Por favor, digite o nome da imagem. Exemplo: open_image logo.png")
 
-# Comando play_audio
-        elif comando == "play_audio":
+# Comando audio
+        elif comando == "audio":
             if argumento:
                 # Inicializa o motor de áudio apenas quando for usado pela primeira vez
                 if not pygame.mixer.get_init():
@@ -1145,13 +1715,13 @@ def iniciar_pyos():
                             # O -1 faz com que a música fique em loop infinito
                             pygame.mixer.music.play(-1)
                             print(f"🎵 A tocar agora: {argumento} (em segundo plano)")
-                            print("DICA: Use 'tocar pausar' ou 'tocar parar' para controlar o áudio.")
+                            print("DICA: Use 'audio pause' ou 'audio stop' para controlar o áudio.")
                         except Exception as e:
                             print(f"Erro ao tentar reproduzir o ficheiro. Certifique-se de que é um .mp3 ou .wav válido. Erro: {e}")
                     else:
                         print(f"Erro: O ficheiro '{argumento}' não foi encontrado.")
             else:
-                print("Por favor, digite o nome da música ou o comando. Ex: tocar lofi.mp3")
+                print("Por favor, digite o nome da música ou o comando. Ex: audio lofi.mp3")
 
 # Comando disk
         elif comando == "disk":
@@ -1352,7 +1922,7 @@ def iniciar_pyos():
                         print(f"Cor alterada para {cor_escolhida}! Configuração salva.")
                         
                     # --- NOVO: Salvar no banco de dados de configurações ---
-                    arquivo_config = "config_db.json"
+                    arquivo_config = os.path.join(FOLDER_DATAS, "config_db.json")
                     if os.path.exists(arquivo_config):
                         with open(arquivo_config, 'r', encoding='utf-8') as f:
                             banco_cores = json.load(f)
