@@ -11,6 +11,7 @@ import base64, hashlib
 # MÓDULOS DE TERCEIROS (Instalados via PIP)
 # ==========================================
 import psutil
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = "hide"
 import pygame
 import pyttsx3
 import google.generativeai as genai
@@ -121,6 +122,7 @@ def iniciar_pyos():
             print("  help-office    : Exibe os comandos de criação e edição de arquivos de textos e planilhas")
             print("  help-config    : Exibe os comandos de configurações de usuários e outros")
             print("  quit           : Desliga o sistema")
+            print("  \033[1;31mself-destruct\033[0m  : Inicia o Protocolo Ômega (Apaga todos os dados e encerra o PyOS)")
 
         elif comando == "help-basics":
             print("\n--- Comandos Disponíveis ---")
@@ -133,7 +135,6 @@ def iniciar_pyos():
             print("  rmnder         : Define um alarme falante em minutos (ex: lembrete 1 Tirar a pizza)")
             print("  print          : Repete o que você digitar (ex: print Hello World!)")
             print("  speak          : Faz o sistema ler um texto em voz alta (ex: speak Hello World!)")
-            print("  matrix         : Ativa o protetor de ecrã hacker (Pressione Ctrl+C para sair)")
             print("  calc           : Uma calculadora simples (ex: calc 5 + 5)")
             print("  play           : Abre o menu de mini-jogos do PyOS para relaxar")
             print("  task           : Gerencia as suas tarefas diárias (ex: task add, task read, task ok)")
@@ -155,11 +156,15 @@ def iniciar_pyos():
             print("  search         : Busca arquivos e pastas pelo nome (ex: search projeto)")
             print("  mkdir          : Cria uma nova pasta (ex: mkdir nova_pasta)")
             print("  rmdir          : Deleta uma pasta (ex: rmdir pasta_antiga)")
+            print("  tree           : Desenha o mapa visual de arquivos e pastas (ex: tree ou tree banco_de_dados)")
             print("  open           : Executa um arquivo com o programa padrão do seu computador (ex: open foto.jpg)")
             print("  delete         : Deleta um arquivo específico (ex: delete texto.txt)")
             print("  empty          : Apaga TODOS os arquivos de uma pasta de uma vez (ex: empty minha_pasta)")
             print("  lock           : Criptografa um arquivo com senha (ex: lock segredo.txt)")
             print("  unlock         : Descriptografa um arquivo bloqueado (ex: unlock segredo.txt.lock)")
+            print("  hide           : Oculta um texto secreto dentro dos pixels de uma imagem (ex: hide foto.png A senha é 123)")
+            print("  reveal         : Extrai a mensagem secreta escondida numa imagem (ex: reveal foto.png)")
+            print("  base64         : Codifica ou decodifica textos no formato Base64 (ex: base64 encode texto)")
             print("  password       : Cofre criptografado de senhas (ex: password generate, password save, password read)")
             
         elif comando == "help-office":
@@ -177,6 +182,7 @@ def iniciar_pyos():
             print("  disk           : Analisa o espaço de armazenamento do disco atual")
             print("  status         : Mostra o uso de CPU, RAM e Bateria em tempo real")
             print("  devices        : Lista os adaptadores de rede e dispositivos USB conectados")
+            print("  scan           : Mapeia a sua rede Wi-Fi local e lista os aparelhos conectados")
             print("  adduser        : Adiciona um novo usuário ao sistema (ex: adduser maria)")
             print("  dltuser        : Deleta um usuário do sistema (ex: dltuser joao)")
             print("  color          : Muda a cor do terminal (ex: color green, color default)")
@@ -322,50 +328,6 @@ def iniciar_pyos():
                     print("DICA: Verifique se o volume do seu computador está ligado.")
             else:
                 print("Por favor, digite o que eu devo falar. Exemplo: falar Sistema operacional ativado com sucesso.")
-
-# Comando matrix
-        elif comando == "matrix":
-            print("\033[?25l") # Truque ninja: Esconde o cursor a piscar do terminal
-            try:
-                # O alfabeto do nosso protetor de ecrã (Letras, números, símbolos e até uns Katanas japoneses)
-                caracteres = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*アイウエオカキクケコサシスセソタチツテト"
-                
-                # Descobre o tamanho exato da janela do seu terminal neste momento
-                largura = shutil.get_terminal_size().columns
-                
-                # Cria uma lista para controlar o tamanho do "rastro" que cai em cada coluna
-                gotas = [0] * largura
-                
-                while True:
-                    linha = ""
-                    for i in range(largura):
-                        # Se a coluna não tiver uma gota a cair, damos uma chance (2%) de criar uma nova
-                        if gotas[i] == 0:
-                            if random.random() > 0.98: 
-                                gotas[i] = random.randint(10, 25) # O rastro terá entre 10 e 25 caracteres
-                                # A ponta da gota que está a cair é BRANCA e brilhante
-                                linha += "\033[1;37m" + random.choice(caracteres)
-                            else:
-                                linha += " " # Coluna vazia
-                        else:
-                            # Se a gota já está a cair, desenha o rastro VERDE
-                            # Intercala entre verde claro e verde escuro para dar um efeito de falha (glitch)
-                            cor = "\033[1;32m" if random.random() > 0.4 else "\033[0;32m"
-                            linha += cor + random.choice(caracteres)
-                            gotas[i] -= 1 # Diminui o tamanho do rastro
-                            
-                    # Imprime a linha inteira gerada e reseta a cor no final
-                    print(linha + "\033[0m")
-                    
-                    import time
-
-                    # Pausa de milissegundos para os seus olhos conseguirem ver a chuva a cair
-                    time.sleep(0.04) 
-                    
-            except KeyboardInterrupt:
-                # Quando o utilizador aperta Ctrl+C (Interrupção de Teclado)
-                print("\033[0m\033[?25h") # Reseta as cores e traz o cursor do rato de volta
-                print("\n\n\033[1;32m[Sistema] Desconectado da Matrix.\033[0m")
 
 # Comando calc
         elif comando == "calc":
@@ -1179,6 +1141,59 @@ def iniciar_pyos():
             else:
                 print("Por favor, digite o nome da pasta. Exemplo: 'rmdir pasta_antiga'")
 
+# Comando tree
+        elif comando == "tree":
+            
+            # Se não digitar nada, mapeia a pasta atual ("."). Se digitar, mapeia a pasta escolhida.
+            alvo = argumento.strip() if argumento else "."
+            
+            if not os.path.exists(alvo):
+                print(f"❌ A pasta '{alvo}' não existe.")
+                continue
+                
+            print(f"\n\033[1;36m========== 🌳 MAPA DE DIRETÓRIOS ==========\033[0m")
+            print(f"Mapeando a estrutura de: \033[1;33m{os.path.abspath(alvo)}\033[0m\n")
+            
+            # A função mágica que desenha as linhas
+            def gerar_arvore(caminho, prefixo="", nivel_atual=0, nivel_max=3):
+                # Trava de segurança para não travar o PC lendo o HD inteiro
+                if nivel_atual > nivel_max:
+                    print(prefixo + "└── \033[1;30m[... limite de profundidade atingido ...]\033[0m")
+                    return
+                    
+                try:
+                    # Pega tudo o que tem na pasta e organiza (pastas e arquivos)
+                    itens = os.listdir(caminho)
+                    itens.sort()
+                except PermissionError:
+                    # Se o Windows/Linux bloquear o acesso a pastas de sistema
+                    print(prefixo + "└── \033[1;31m⛔ [Acesso Negado]\033[0m")
+                    return
+                    
+                total = len(itens)
+                for i, item in enumerate(itens):
+                    ultimo = (i == total - 1)
+                    caminho_completo = os.path.join(caminho, item)
+                    
+                    # Desenha as quinas e retas
+                    ponteiro = "└── " if ultimo else "├── "
+                    
+                    if os.path.isdir(caminho_completo):
+                        # Se for pasta, pinta de Azul e coloca o ícone
+                        print(prefixo + ponteiro + "\033[1;34m📁 " + item + "\033[0m")
+                        # Prepara o espaçamento para desenhar o que tem dentro DESSA pasta
+                        extensao = "    " if ultimo else "│   "
+                        gerar_arvore(caminho_completo, prefixo + extensao, nivel_atual + 1, nivel_max)
+                    else:
+                        # Se for arquivo normal, pinta de Cinza Claro e coloca ícone
+                        print(prefixo + ponteiro + "\033[0;37m📄 " + item + "\033[0m")
+
+            # Inicia o mapeamento a partir da pasta raiz que você escolheu
+            print("\033[1;34m📁 " + os.path.basename(os.path.abspath(alvo)) + "\033[0m")
+            gerar_arvore(alvo)
+            
+            print(f"\n\033[1;36m===========================================\033[0m\n")
+
 # Comando open
         elif comando == "open":
             if argumento:
@@ -1325,6 +1340,154 @@ def iniciar_pyos():
                     print(f"Erro: Arquivo '{argumento}' não encontrado.")
             else:
                 print("Por favor, digite o nome do arquivo. Exemplo: destravar diario.txt.lock")
+
+# Comando hide
+        elif comando == "hide":
+            # O comando espera algo como: esconder imagem.png Minha mensagem secreta
+            partes = argumento.split(" ", 1)
+            
+            if len(partes) < 2:
+                print("❌ Uso correto: esconder [nome_da_imagem.png] [sua mensagem secreta]")
+                print("DICA: Use imagens .PNG! Imagens .JPG destroem os dados ocultos por causa da compressão.")
+            else:
+                img_path = partes[0]
+                # Adicionamos um "marcador final" para o PyOS saber onde a mensagem acaba
+                mensagem = partes[1] + "@@FIM@@" 
+                
+                try:
+                    from PIL import Image
+                    print(f"\n\033[1;35m========== 🕵️ ESTEGANOGRAFIA ==========\033[0m")
+                    print(f"A injetar dados em '{img_path}'...")
+                    
+                    img = Image.open(img_path)
+                    img = img.convert('RGB') # Garante que temos os canais Red, Green, Blue
+                    pixels = img.load()
+                    largura, altura = img.size
+                    
+                    # Converte a mensagem de texto para zeros e uns (Binário)
+                    binario = ''.join([format(ord(i), "08b") for i in mensagem])
+                    tamanho_bin = len(binario)
+                    
+                    # Verifica se a imagem tem pixels suficientes para o tamanho do texto
+                    if tamanho_bin > largura * altura:
+                        print("❌ Erro: A imagem é muito pequena para esconder essa quantidade de texto!")
+                    else:
+                        idx = 0
+                        # Varre a imagem pixel por pixel
+                        for y in range(altura):
+                            for x in range(largura):
+                                if idx < tamanho_bin:
+                                    r, g, b = pixels[x, y]
+                                    
+                                    # MÁGICA LSB: Limpa o último bit da cor Vermelha e injeta o nosso bit da mensagem
+                                    r = (r & 254) | int(binario[idx])
+                                    
+                                    pixels[x, y] = (r, g, b)
+                                    idx += 1
+                                else:
+                                    break
+                            if idx >= tamanho_bin:
+                                break
+                        
+                        novo_nome = "secreto_" + img_path
+                        img.save(novo_nome) # Salva a nova imagem sem perdas
+                        print(f"✅ \033[1;32mSucesso!\033[0m Mensagem injetada de forma indetetável.")
+                        print(f"A sua nova imagem camuflada chama-se: \033[1;33m{novo_nome}\033[0m")
+                        
+                except FileNotFoundError:
+                    print(f"❌ Imagem '{img_path}' não encontrada na pasta atual.")
+                except Exception as e:
+                    print(f"Erro crítico no motor de injeção: {e}")
+                print(f"\033[1;35m=======================================\033[0m\n")
+
+# Comando reveal
+        elif comando == "reveal":
+            if not argumento:
+                print("❌ Uso correto: reveal [nome_da_imagem_secreta.png]")
+            else:
+                img_path = argumento
+                try:
+                    from PIL import Image
+                    print(f"\n\033[1;35m========== 👁️ DECODIFICADOR ==========\033[0m")
+                    print(f"A analisar pixels de '{img_path}' à procura de anomalias LSB...\n")
+                    
+                    img = Image.open(img_path)
+                    img = img.convert('RGB')
+                    pixels = img.load()
+                    largura, altura = img.size
+                    
+                    # Extrai o último bit do canal vermelho de todos os pixels
+                    binario = ""
+                    for y in range(altura):
+                        for x in range(largura):
+                            r, g, b = pixels[x, y]
+                            binario += str(r & 1)
+                            
+                    # Agrupa os bits de 8 em 8 para transformar de volta em letras
+                    mensagem_extraida = ""
+                    for i in range(0, len(binario), 8):
+                        byte = binario[i:i+8]
+                        if len(byte) == 8:
+                            mensagem_extraida += chr(int(byte, 2))
+                            # Assim que encontrar o nosso marcador final, para a busca
+                            if mensagem_extraida.endswith("@@FIM@@"):
+                                mensagem_extraida = mensagem_extraida[:-7] # Remove o marcador
+                                break
+                                
+                    print(f"🔓 \033[1;36mMensagem Revelada:\033[0m \033[1;37m{mensagem_extraida}\033[0m")
+                    
+                except FileNotFoundError:
+                    print(f"❌ Imagem '{img_path}' não encontrada.")
+                except Exception as e:
+                    print(f"Erro ao extrair dados: {e}. Tem a certeza que esta imagem tem uma mensagem oculta?")
+                print(f"\033[1;35m=======================================\033[0m\n")
+
+# Comando base64
+        elif comando == "base64":
+            import base64
+            
+            # Se o usuário não digitar nada ou digitar errado
+            if not argumento or " " not in argumento:
+                print("\n\033[1;34m========== 🔠 CODIFICADOR BASE64 ==========\033[0m")
+                print("Uso correto:")
+                print("  \033[1;33mbase64 encode [texto]\033[0m : Transforma um texto em Base64")
+                print("  \033[1;33mbase64 decode [texto]\033[0m : Reverte um Base64 para texto normal")
+                print("\033[1;34m===========================================\033[0m\n")
+                continue
+                
+            # Divide o comando da mensagem ("encode" ou "decode" e o "texto")
+            partes = argumento.split(" ", 1)
+            acao = partes[0].lower()
+            texto = partes[1]
+            
+            if acao in ["encode", "codificar"]:
+                try:
+                    # O Python exige que o texto vire "bytes" antes de ser convertido
+                    bytes_texto = texto.encode('utf-8')
+                    base64_bytes = base64.b64encode(bytes_texto)
+                    resultado = base64_bytes.decode('utf-8')
+                    
+                    print(f"\n🔐 \033[1;32mTexto Codificado (Base64):\033[0m")
+                    print(f"\033[1;37m{resultado}\033[0m\n")
+                except Exception as e:
+                    print(f"❌ Erro na codificação: {e}")
+                    
+            elif acao in ["decode", "decodificar"]:
+                try:
+                    # Processo inverso: pega os bytes do Base64 e transforma em texto legível
+                    base64_bytes = texto.encode('utf-8')
+                    bytes_texto = base64.b64decode(base64_bytes)
+                    resultado = bytes_texto.decode('utf-8')
+                    
+                    print(f"\n🔓 \033[1;36mTexto Decodificado:\033[0m")
+                    print(f"\033[1;37m{resultado}\033[0m\n")
+                except base64.binascii.Error:
+                    print("❌ \033[1;31mErro:\033[0m O texto inserido não é um formato Base64 válido (falta de preenchimento ou caracteres incorretos).")
+                except Exception as e:
+                    print(f"❌ Erro na decodificação: {e}")
+                    
+            else:
+                print("❌ Ação desconhecida. Use 'encode' ou 'decode'.")
 
 # Comando password
         elif comando == "password":
@@ -1834,6 +1997,74 @@ def iniciar_pyos():
                 
             print("-" * 42)
 
+# Comando scan
+        elif comando == "scan":
+            import socket
+            
+            print(f"\n\033[1;36m========== 📡 RADAR DE REDE LOCAL ==========\033[0m")
+            print("Iniciando varredura tática (Ping Sweep)...")
+            
+            # 1. Descobre qual é o SEU IP atual na rede
+            meu_ip = "127.0.0.1"
+            try:
+                # Tenta conectar no Google rapidinho só para o seu roteador te dar a sua "identidade"
+                s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+                s.connect(("8.8.8.8", 80))
+                meu_ip = s.getsockname()[0]
+                s.close()
+            except Exception:
+                print("❌ Não foi possível identificar a rede. Você está conectado ao Wi-Fi/Cabo?")
+                continue
+                
+            # Extrai a base da rede (ex: de "192.168.0.15" vira "192.168.0.")
+            base_ip = '.'.join(meu_ip.split('.')[:-1]) + '.'
+            print(f"Sua Sub-rede: \033[1;33m{base_ip}0/24\033[0m")
+            print("Disparando 254 pacotes paralelos. Aguarde...\n")
+            
+            aparelhos_ativos = []
+            threads = []
+            
+            # 2. A função que cada thread vai executar (pingar um único IP)
+            def pingar_alvo(ip):
+                # O comando muda se for Windows (win32) ou Linux/Mac
+                if sys.platform == "win32":
+                    # -n 1 (manda 1 pacote) | -w 500 (espera meio segundo) | > nul (esconde o texto feio do sistema)
+                    cmd = f"ping -n 1 -w 500 {ip} > nul 2>&1"
+                else:
+                    # -c 1 (1 pacote) | -W 1 (espera 1 segundo) | > /dev/null (esconde o texto)
+                    cmd = f"ping -c 1 -W 1 {ip} > /dev/null 2>&1"
+                
+                resposta = os.system(cmd)
+                
+                # Se a resposta for 0, significa que o alvo recebeu o pacote e respondeu!
+                if resposta == 0:
+                    aparelhos_ativos.append(ip)
+
+            # 3. Dispara as 254 threads de uma vez
+            for i in range(1, 255):
+                ip_alvo = f"{base_ip}{i}"
+                t = threading.Thread(target=pingar_alvo, args=(ip_alvo,))
+                threads.append(t)
+                t.start()
+                
+            # 4. Espera todos os radares voltarem com as respostas
+            for t in threads:
+                t.join()
+                
+            # 5. Imprime o relatório final e organiza os IPs em ordem numérica
+            aparelhos_ativos.sort(key=lambda ip: int(ip.split('.')[-1]))
+            
+            print(f"🎯 \033[1;32mVarredura Concluída!\033[0m Encontrados \033[1;37m{len(aparelhos_ativos)}\033[0m dispositivos ativos:")
+            for ativo in aparelhos_ativos:
+                if ativo == meu_ip:
+                    print(f"   💻 \033[1;36m{ativo}\033[0m (Este Computador)")
+                elif ativo == f"{base_ip}1":
+                    print(f"   🌐 \033[1;33m{ativo}\033[0m (Provável Roteador)")
+                else:
+                    print(f"   📱 \033[1;37m{ativo}\033[0m (Dispositivo Desconhecido)")
+                    
+            print(f"\033[1;36m============================================\033[0m\n")
+
 # Comando adduser
         elif comando == "adduser":
             if argumento:
@@ -1940,6 +2171,59 @@ def iniciar_pyos():
                     print(" -> red, green, yellow, blue, purple, cyan, white e default")
             else:
                 print("Por favor, digite uma cor. Exemplo: 'color green'")
+
+# Comando self-destruct
+        elif comando == "self-destruct":
+            import time
+            import tempfile
+            
+            print("\n\033[1;41m\033[1;37m !!! ALERTA DE SEGURANÇA MÁXIMA !!! \033[0m")
+            print("\033[1;31mVocê iniciou o Protocolo de Autodestruição Total.\033[0m")
+            print("Isso apagará o seu Banco de Dados, Senhas e \033[1;33mTODO O CÓDIGO-FONTE DO PyOS\033[0m.")
+            print("NÃO HAVERÁ VOLTA. O SEU TRABALHO SERÁ PULVERIZADO.")
+            
+            confirmacao = input("\n\033[1;33mDigite o código 'OMEGA' para confirmar (ou Enter para cancelar): \033[0m")
+            
+            if confirmacao.strip().upper() == "OMEGA":
+                print("\n\033[1;31m[!] CÓDIGO ACEITO. PROTOCOLO OMEGA INICIADO.\033[0m")
+                
+                for i in range(5, 0, -1):
+                    sys.stdout.write(f"\r\033[1;31m[ INICIANDO LIMPEZA TOTAL EM {i} ... ]\033[0m")
+                    sys.stdout.flush()
+                    time.sleep(1)
+                    
+                print("\n\n\033[1;33mPREPARANDO CARGA EXPLOSIVA DO SISTEMA...\033[0m")
+                time.sleep(1)
+                
+                # 1. Pega o caminho absoluto da pasta atual do seu projeto PyOS
+                pasta_pyos = os.getcwd()
+                
+                # 2. O Truque: Cria um script .bat na pasta TEMP do Windows (bem longe daqui)
+                caminho_bat = os.path.join(tempfile.gettempdir(), "apagar_pyos.bat")
+                
+                # Este script espera 2 segundos, apaga a sua pasta inteira (rmdir /s /q) e depois apaga-se a si mesmo
+                conteudo_bat = f"""@echo off
+                timeout /t 2 /nobreak > nul
+                rmdir /s /q "{pasta_pyos}"
+                del "%~f0"
+                """
+                # Salva o script fantasma
+                with open(caminho_bat, "w", encoding="utf-8") as f:
+                    f.write(conteudo_bat)
+                    
+                print("\n\033[1;31mADEUS.\033[0m")
+                time.sleep(1)
+                
+                # 3. Executa o script fantasma de forma invisível e desvinculada do Python
+                # CREATE_NO_WINDOW (0x08000000) impede que a tela preta do cmd apareça
+                subprocess.Popen(["cmd.exe", "/c", caminho_bat], creationflags=0x08000000)
+                
+                # 4. Suicídio do processo: fecha o PyOS na mesma fração de segundo
+                # Isso libera a pasta para que o script fantasma consiga apagá-la
+                sys.exit(0)
+                
+            else:
+                print("\n\033[1;32mProtocolo abortado. O código-fonte sobreviveu.\033[0m")
 
         else:
             print(f"Comando '{comando}' não reconhecido. Digite 'help' para ver a lista.")
