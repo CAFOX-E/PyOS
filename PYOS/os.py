@@ -188,7 +188,6 @@ def iniciar_pyos():
             print("  scan           : Mapeia a sua rede Wi-Fi local e lista os aparelhos conectados")
             print("  adduser        : Adiciona um novo usuário ao sistema (ex: adduser maria)")
             print("  dltuser        : Deleta um usuário do sistema (ex: dltuser joao)")
-            print("  color          : Muda a cor do terminal (ex: color green, color default)")
             
 # Comando logout
         elif comando == "logout":
@@ -2333,51 +2332,6 @@ def iniciar_pyos():
                         print(f"Erro ao gerenciar usuários: {e}")
             else:
                 print("Por favor, digite o nome do usuário que deseja deletar. Exemplo: dltuser visitante")
-
-# Comando color
-        elif comando == "color":
-            cores = {
-                "red": "\033[31m",
-                "green": "\033[32m",
-                "yellow": "\033[33m",
-                "blue": "\033[34m",
-                "purple": "\033[35m",
-                "cyan": "\033[36m",
-                "white": "\033[37m",
-                "default": "\033[0m"
-            }
-            
-            if argumento:
-                cor_escolhida = argumento.lower()
-                
-                if cor_escolhida in cores:
-                    # Aplica a cor na tela
-                    print(cores[cor_escolhida], end="")
-                    
-                    if cor_escolhida == "default":
-                        print("Cor restaurada para o padrão do sistema.")
-                    else:
-                        print(f"Cor alterada para {cor_escolhida}! Configuração salva.")
-                        
-                    # --- NOVO: Salvar no banco de dados de configurações ---
-                    arquivo_config = os.path.join(FOLDER_DATAS, "config_db.json")
-                    if os.path.exists(arquivo_config):
-                        with open(arquivo_config, 'r', encoding='utf-8') as f:
-                            banco_cores = json.load(f)
-                    else:
-                        banco_cores = {}
-                        
-                    # Salva a cor escolhida associada ao nome do usuário logado
-                    banco_cores[usuario] = cor_escolhida
-                    
-                    with open(arquivo_config, 'w', encoding='utf-8') as f:
-                        json.dump(banco_cores, f, indent=4)
-                    # -------------------------------------------------------
-                else:
-                    print("Cor inválida. As opções são:")
-                    print(" -> red, green, yellow, blue, purple, cyan, white e default")
-            else:
-                print("Por favor, digite uma cor. Exemplo: 'color green'")
 
 # Comando self-destruct
         elif comando == "self-destruct":
