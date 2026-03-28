@@ -2206,6 +2206,7 @@ def iniciar_pyos():
 # Comando scan
         elif comando == "scan":
             import socket
+            import threading
             
             print(f"\n\033[1;36m========== 📡 RADAR DE REDE LOCAL ==========\033[0m")
             print("Iniciando varredura tática (Ping Sweep)...")
