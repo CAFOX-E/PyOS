@@ -71,7 +71,7 @@ def iniciar_pyos():
     # ---------------------------------------------------------------
 
     # --- NOVO: CARREGAR CONFIGURAÇÕES DE COR DO USUÁRIO ---
-    arquivo_config = "config_db.json"
+    arquivo_config = os.path.join(FOLDER_DATAS, "config_db.json")
     if os.path.exists(arquivo_config):
         with open(arquivo_config, 'r', encoding='utf-8') as f:
             banco_cores = json.load(f)
