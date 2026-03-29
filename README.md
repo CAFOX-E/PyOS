@@ -1,4 +1,4 @@
-# PyOS 1.0
+# PyOS 2.0
 My """operational system""" made in python
 
 # PyOS 0.1 (base)
@@ -73,3 +73,12 @@ Improved visualization of files and folders.
   Added audio player and speaker.
   - With the `speak` command, the terminal will speak whatever you type next to the command.
   - Using the `play_audio` command, the terminal will play any MP3 file in the background.
+
+  The `self-destruct` command has been added;
+  this command is used to completely delete all program files.
+
+  Added other commands, such as the `tree` command.
+  - This code uses recursion (a function that calls itself) to infinitely enter subfolders and draw perfectly aligned lines!
+
+# PyOS 2.0 (Executable Update)
+  Added the 'compile.py' program, used to compile the original program and transform it into a .exe executable (The .exe program will be available in the 'dist' folder)
