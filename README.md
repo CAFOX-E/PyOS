@@ -1,84 +1,107 @@
 # PyOS 2.0
-My """operational system""" made in python
 
-# PyOS 0.1 (base)
-A simulated operating system (a command-line environment or "shell") in Python.
-  It functions as a virtual interface where you can execute commands, manage files,
-  and view the time, simulating the experience of a real system.
+> A fully-featured simulated operating system built in Python — run directly from your terminal.
 
-# PyOS 0.2 (File Management Update)
-Added the ability to explore local files.
-  - Added 'import shutil'
-  - The 'cd' command has been added, allowing you to access the local folder by name
-  - The 'disk' has been added, allowing you to view the total and free space on your HDD/SSD.
+PyOS is a command-line environment that mimics the experience of a real operating system. It supports file management, user accounts, AI conversations, encryption, local servers, mini-games, audio playback, and much more — all from a single Python script.
 
-# PyOS 0.3 (Login Update)
-Added the ability to log into the system using only a username.
-  - The Login Loop: Added a small `while not usuario:` loop that prevents the user from simply pressing "Enter" with an empty username. It will keep asking until a username is entered.
-  - Personalized welcome: The system now says `Welcome to PyOS, [Your Name]!`
-  - Dynamic Prompt: Before, you used `PyOS>`. Now, if you type "Your-Name", the terminal will look like this: `You-Name@PyOS>`
+---
 
-# PyOS 0.4 (File Management Update 2)
-Improving the 'File Management Update' process.
-  - Added 'import stat'
-  - `mkdir` (Make Directory) - To create new folders
-  - `rmdir` (Remove Directory) - To delete folders
+## Requirements
 
-# PyOS 0.5 (List Update)
-Improved visualization of files and folders.
-  - Now, when you type `list`, your terminal will be much more organized, displaying not only directories but also other files. Like this:
-  Current directory contents (C:\Your\Folder):
-    [FOLDER]   tests
-    [FOLDER]   images
-    [ARCHIVE]  docs.txt
-    [ARCHIVE]  script.py
-  - Added 'import subprocess'
-  - Added the ability to execute files, regardless of their type.
+Install the required third-party packages before running:
 
-# PyOS 0.6 (Text Management Update)
-  - `read`: To read what is written inside a .txt and others text files
-  - `write`: To create a file and type text into it, directly from the terminal
+```bash
+pip install psutil pygame pyttsx3 google-generativeai beautifulsoup4 Pillow cryptography deep-translator
+```
 
-# PyOS 0.7 (User Database and Their Settings Update)
-  - Added 'import JSON'
-  A JSON """database""" has been added that saves the username and password of each program user.
-  It also saves each user's color display settings.
-  - `adduser`: To create a new user account (with password) directly from the terminal
-  - `dltuser`: To delete a user from the database (and we'll put a security lock in place to prevent you from deleting yourself while using the system!)
+> **Note:** You'll also need a [Google Gemini API key](https://aistudio.google.com/) to use the `ai` command.
 
-# PyOS 0.8 (AI Update)
-  - Added 'import google.generativeai'
-  Now you can communicate with the Gemini AI directly from the terminal.
-  You will only need to include the requested API key in the code.
+---
 
-# PyOS 0.9 (Server, encryption and hardware management update)
-  Added two file reading modes for a server (web or ftp)
-  - Type the command `server web` or `server ftp` and the program will create a port for the local file-sharing server (LOCAL NETWORK ONLY. Not tested for use outside of it).
- 
-  Added file encryption (FILES ONLY)
-  - With the `lock` command, you can encrypt any type of file, which will cause the program to request a password to decrypt it.
-  - Use the `unlock` command for this.
-  
-  Added a simple hardware manager.
-  - Type the command `status` to view your computer's CPU and RAM usage.
-  - You can also use the `devices` command to see which devices are connected to your computer.
+## Getting Started
 
-# PyOS 1.0 (Games, audio and time update)
-  Added 3 games to the terminal for simple entertainment.
-  - Type `play`, and you'll have 3 different mini-games: "Guess the Number", "Rock, Paper, Scissors", and "Hangman".
-  
-  Added visualization of local weather conditions.
-  - Type `time`, and you will see the weather for your location (type a specific location next to the command to see the weather for that place).
-  
-  Added audio player and speaker.
-  - With the `speak` command, the terminal will speak whatever you type next to the command.
-  - Using the `play_audio` command, the terminal will play any MP3 file in the background.
+```bash
+python os.py
+```
 
-  The `self-destruct` command has been added;
-  this command is used to completely delete all program files.
+On first launch, PyOS will ask for a username and prompt you to create a password. Returning users are authenticated via the local `database/users_db.json` file.
 
-  Added other commands, such as the `tree` command.
-  - This code uses recursion (a function that calls itself) to infinitely enter subfolders and draw perfectly aligned lines!
+---
 
-# PyOS 2.0 (Executable Update)
-  Added the 'compile.py' program, used to compile the original program and transform it into a .exe executable (The .exe program will be available in the 'dist' folder)
+## Commands
+
+Once inside PyOS, type `help` to explore command categories:
+
+| Category | Command |
+|---|---|
+| General | `help`, `help-basics`, `help-web`, `help-archives`, `help-office`, `help-config` |
+| Navigation | `cd`, `list`, `tree`, `search` |
+| File Operations | `mkdir`, `rmdir`, `delete`, `empty`, `open`, `read`, `write` |
+| Web & Network | `browse`, `wiki`, `news`, `translate`, `track`, `ping`, `server` |
+| Security | `lock`, `unlock`, `hide` |
+| System | `status`, `devices`, `date`, `time`, `clear`, `logout`, `quit` |
+| User Management | `adduser`, `dltuser` |
+| Entertainment | `play`, `play_audio`, `speak` |
+| AI | `ai` |
+
+---
+
+## Changelog
+
+### v2.0 — Executable Update
+- Added `compile.py` to package PyOS as a standalone `.exe` via PyInstaller. The compiled executable is output to the `dist/` folder.
+
+### v1.0 — Games, Audio & Weather Update
+- **Mini-games:** Type `play` to access *Guess the Number*, *Rock Paper Scissors*, and *Hangman*.
+- **Weather:** Type `time` to see local weather in ASCII art, or `time <city>` for a specific location.
+- **Audio:** `speak <text>` reads text aloud via TTS; `play_audio` plays an MP3 in the background.
+- **Tree view:** `tree` recursively draws a visual map of your file structure using recursion.
+- **Self-destruct:** Added the `self-destruct` command — initiates the Omega Protocol, permanently erasing all PyOS files. Use with caution.
+
+### v0.9 — Server, Encryption & Hardware Update
+- **Local servers:** `server web` or `server ftp` spins up a local file-sharing server (LAN only).
+- **File encryption:** `lock <file>` encrypts any file with a password; `unlock <file>` decrypts it.
+- **Hardware monitor:** `status` shows CPU and RAM usage; `devices` lists connected peripherals.
+
+### v0.8 — AI Update
+- Integrated Google Gemini AI via `import google.generativeai`.
+- Type `ai` to start a conversation with the AI directly from the terminal.
+
+### v0.7 — User Database & Settings Update
+- Added `import json` and a local JSON-based user database (`database/users_db.json`).
+- Stores usernames, hashed passwords, and per-user display color preferences.
+- `adduser <name>` — creates a new user account from the terminal.
+- `dltuser <name>` — deletes a user (with a safety lock preventing self-deletion).
+
+### v0.6 — Text Management Update
+- `read <file>` — displays the contents of `.txt` and other text files.
+- `write <file>` — creates a new text file and lets you type content directly into it.
+
+### v0.5 — List Update
+- Improved `list` command output, now distinguishing between `[FOLDER]` and `[ARCHIVE]` entries with clean formatting.
+- Added `import subprocess` and the ability to execute any file type using the OS default handler.
+
+### v0.4 — File Management Update 2
+- Added `import stat`.
+- `mkdir <name>` — creates a new directory.
+- `rmdir <name>` — deletes a directory.
+
+### v0.3 — Login Update
+- Introduced a login loop that prevents empty usernames.
+- Personalized welcome message: *Welcome to PyOS, [Name]!*
+- Dynamic prompt: the terminal now displays `Name@PyOS>` instead of the generic `PyOS>`.
+
+### v0.2 — File Management Update
+- Added `import shutil`.
+- `cd <folder>` — navigate into local directories.
+- `disk` — displays total and available storage space on your drive.
+
+### v0.1 — Base
+- Initial release: a simulated command-line shell in Python.
+- Supported basic commands for file navigation, time display, and system interaction.
+
+---
+
+## Author
+
+Created by **CAFOX-E**.
